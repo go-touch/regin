@@ -1,8 +1,8 @@
 package regin
 
 import (
-	"github.com/q676718008/regin/origin"
-	"github.com/q676718008/regin/app"
+	"github.com/go-touch/regin/origin"
+	"github.com/go-touch/regin/app"
 )
 
 type Guider struct{}
