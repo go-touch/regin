@@ -127,7 +127,12 @@ func (c *Combine) parserRows(rows *sql.Rows) (list []map[string]interface{}, err
 		row := make(map[string]interface{})
 		for i := 0; i < length; i++ {
 			key := columns[i]
-			value := string(args[i].([]byte))
+			var value string
+			if args[i] == nil {
+				value = ""
+			} else {
+				value = string(args[i].([]byte))
+			}
 			row[key] = value
 		}
 
