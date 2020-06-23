@@ -40,13 +40,11 @@ func (r *Result) CreateHtml(page string, status int, msg string) *Result {
 }
 
 // Business data method.
-func (r *Result) SetData(key string, value interface{}) error {
+func (r *Result) SetData(key string, value interface{}) {
 	r.Data[key] = value
-	return nil
 }
 
 // business data method - 获取Data
 func (r *Result) GetData(key string) interface{} {
 	return r.Data[key]
 }
-
