@@ -1,8 +1,8 @@
 package base
 
 import (
-	"github.com/go-touch/regin/utils"
 	"errors"
+	"github.com/go-touch/regin/utils"
 )
 
 /**************************************** 数据类型 - 结构体RouterStorage ****************************************/
@@ -34,7 +34,7 @@ func (r *RouterStorage) GetMode() string {
 }
 
 // 普通模式
-func (r *RouterStorage) General(moduleName string, generalMap GeneralMap) error {
+func (r *RouterStorage) General(moduleName string, generalMap GeneralMap) {
 	// 设置模式
 	if r.mode != "General" {
 		r.setMode("General")
@@ -45,7 +45,6 @@ func (r *RouterStorage) General(moduleName string, generalMap GeneralMap) error 
 		moduleKey = utils.StringJoinByDot(moduleName, key)
 		r.generalMap[moduleKey] = value
 	}
-	return nil
 }
 
 // 获取GeneralMap
