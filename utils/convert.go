@@ -11,8 +11,11 @@ type ConvertHandler struct {
 // 定义类型常量
 const (
 	Int            = "Int"            // 类型: int
+	Byte           = "Byte"           // 类型: byte
 	String         = "String"         // 类型: string
+	Bool           = "Bool"           // 类型: bool
 	IntSlice       = "IntSlice"       // 类型: []int
+	ByteSlice      = "ByteSlice"      // 类型: []byte
 	StringSlice    = "StringSlice "   // 类型: []string
 	AnySlice       = "AnySlice "      // 类型: []interface{}
 	StringMapSlice = "StringMapSlice" // 类型: []map[string]string
@@ -33,10 +36,16 @@ func (ch *ConvertHandler) GetType(object interface{}) string {
 	switch t := object.(type) {
 	case int:
 		return Int
+	case byte:
+		return Byte
 	case string:
 		return String
+	case bool:
+		return Bool
 	case []int:
 		return IntSlice
+	case []byte:
+		return ByteSlice
 	case []string:
 		return StringSlice
 	case []interface{}:
@@ -61,13 +70,28 @@ func (ch *ConvertHandler) ToTargetType(object interface{}, targetType string) in
 	case Int:
 		if targetType == Int { // int 转 int
 			return object
+		} else if targetType == Byte { // int 转 byte
+			return byte(object.(int))
 		} else if targetType == String { // int 转 string
 			return strconv.Itoa(object.(int))
-		} else if targetType == IntSlice { // int 转 []int
-			return []int{object.(int)}
-		} else if targetType == StringSlice { // int 转 []string
-			V := ch.ToTargetType(object, String)
-			return []string{V.(string)}
+		} else if targetType == Bool { // int 转 bool
+			if object.(int) > 0 {
+				return true
+			}
+			return false
+		}
+	case Byte:
+		if targetType == Int { // byte 转 int
+			return int(object.(byte))
+		} else if targetType == Byte { // byte 转 byte
+			return object
+		} else if targetType == String { // byte 转 string
+			return string([]byte{object.(byte)})
+		} else if targetType == Bool { // byte 转 bool
+			if object.(byte) > 0 {
+				return true
+			}
+			return false
 		}
 	case String:
 		if targetType == Int { // string 转 int
@@ -78,19 +102,60 @@ func (ch *ConvertHandler) ToTargetType(object interface{}, targetType string) in
 			}
 		} else if targetType == String { // string 转 string
 			return object
-		} else if targetType == IntSlice { // string 转 []int
-			V := ch.ToTargetType(object, Int)
-			return []int{V.(int)}
-		} else if targetType == StringSlice { // string 转 []string
-			return []string{object.(string)}
+		} else if targetType == Bool { // string 转 bool
+			if object.(string) != "" {
+				return true
+			}
+			return false
+		} else if targetType == ByteSlice { // string 转 []Byte
+			return []byte(object.(string))
+		}
+	case Bool:
+		if targetType == Int { // bool 转 int
+			if object == true {
+				return 1
+			}
+			return 0
+		} else if targetType == Byte { // bool 转 byte
+			if object == true {
+				return byte(1)
+			}
+			return byte(0)
+		} else if targetType == String { // bool 转 string
+			if object == true {
+				return "true"
+			}
+			return "false"
+		} else if targetType == Bool { // bool 转 bool
+			return object
 		}
 	case IntSlice:
 		if targetType == IntSlice { // []int 转 []int
 			return object
 		} else if targetType == StringSlice { // []int 转 []string
 			var v []string
-
 			for _, value := range object.([]int) {
+				v = append(v, ch.ToTargetType(value, String).(string))
+			}
+			return v
+		}
+	case ByteSlice:
+		if targetType == String { // []byte 转 string
+			return string(object.([]byte))
+		} else if targetType == Bool { // []byte 转 bool
+			if object != nil {
+				return true
+			}
+			return false
+		} else if targetType == IntSlice { // []byte 转 []int
+			var v []int
+			for _, value := range object.([]byte) {
+				v = append(v, int(value))
+			}
+			return v
+		} else if targetType == StringSlice { // []byte 转 []string
+			var v []string
+			for _, value := range object.([]byte) {
 				v = append(v, ch.ToTargetType(value, String).(string))
 			}
 			return v
@@ -98,7 +163,6 @@ func (ch *ConvertHandler) ToTargetType(object interface{}, targetType string) in
 	case StringSlice:
 		if targetType == IntSlice { // []string 转 []int
 			var v []int
-
 			for _, value := range object.([]int) {
 				v = append(v, ch.ToTargetType(value, Int).(int))
 			}
@@ -107,50 +171,44 @@ func (ch *ConvertHandler) ToTargetType(object interface{}, targetType string) in
 			return object
 		}
 	case AnySlice:
-		if targetType == StringSlice { // []interface{} 转 []string
+		if targetType == IntSlice { // []interface{} 转 []int
+			var v []int
+			for _, value := range object.([]int) {
+				v = append(v, ch.ToTargetType(value, Int).(int))
+			}
+			return v
+		} else if targetType == StringSlice { // []interface{} 转 []string
 			var v []string
-
 			for _, value := range object.([]interface{}) {
 				v = append(v, ch.ToTargetType(value, String).(string))
 			}
 			return v
-		}
-	case StringMapSlice:
-		return StringMapSlice
-	case AnyMapSlice:
-		if targetType == StringMapSlice { // []map[string]interface{} 转 []map[string]string
-			var v []map[string]string
-
-			for _, value := range object.([]map[string]interface{}) {
-				v = append(v, ch.ToTargetType(value, StringMap).(map[string]string))
-			}
-			return v
+		} else if targetType == AnySlice { // []interface{} 转 []interface{}
+			return object
 		}
 	case StringMap:
-		if targetType == StringMap { // map[string]string 转 map[string]string
-			return object
-		} else if targetType == AnyMap { // map[string]string 转 map[string]interface{}
-			v := map[string]interface{}{}
-
-			for key, value := range object.(map[string]string) {
-				v[key] = value
-			}
-			return v
-		} else if targetType == StringSlice { // map[string]string 转 []string
+		if targetType == StringSlice { // map[string]string 转 []string
 			var v []string
 			for _, value := range object.(map[string]string) {
 				v = append(v, value)
 			}
 			return v
+		} else if targetType == StringMap { // map[string]string 转 map[string]string
+			return object
+		} else if targetType == AnyMap { // map[string]string 转 map[string]interface{}
+			v := map[string]interface{}{}
+			for key, value := range object.(map[string]string) {
+				v[key] = value
+			}
+			return v
 		}
 	case AnyMap:
 		if targetType == StringMap { // map[string]interface{} 转 map[string]string
-			v := map[string]string{}
-
-			for key, value := range object.(map[string]interface{}) {
-				v[key] = ch.ToTargetType(value, String).(string)
+			value := map[string]string{}
+			for k, v := range object.(map[string]interface{}) {
+				value[k] = ch.ToTargetType(v, String).(string)
 			}
-			return v
+			return value
 		} else if targetType == AnyMap { // map[string]interface{} 转 map[string]interface{}
 			return object
 		}
@@ -159,8 +217,12 @@ func (ch *ConvertHandler) ToTargetType(object interface{}, targetType string) in
 	// 其余类型转
 	if targetType == Int {
 		return 0
+	} else if targetType == Byte {
+		return byte(0)
 	} else if targetType == String {
 		return ""
+	} else if targetType == Bool {
+		return false
 	}
 	return nil
 }
