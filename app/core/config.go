@@ -3,8 +3,8 @@ package core
 import (
 	"github.com/go-touch/regin/base"
 	"github.com/go-touch/regin/utils"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 // Define Config.
@@ -15,7 +15,6 @@ type Config struct {
 
 // Init config
 func (c *Config) Init(configPath string) {
-	c.FileFormat = "json"
 	c.config = make(map[string]interface{})
 
 	// Scan dir list & Load config
@@ -23,29 +22,33 @@ func (c *Config) Init(configPath string) {
 	for _, file := range configFiles {
 		fileSplit := strings.Split(file.Name(), ".")
 		filePath := utils.File.JoinPath(configPath, file.Name())
-		c.config[fileSplit[0]] = utils.ConfigParser.ParserToMap(c.FileFormat, filePath)
+
+		// 配置类型过滤
+		if fileSplit[1] == c.FileFormat {
+			if config, err := utils.ConfigParser.ParserToMap(c.FileFormat, filePath); err != nil {
+				panic(err.Error())
+			} else {
+				c.config[fileSplit[0]] = config
+			}
+		}
 	}
 }
 
 // Get config.
-func (c *Config) GetConfig(args ...string) (data *base.ConfigValue) {
-	data = &base.ConfigValue{}
-
+func (c *Config) GetConfig(args ...string) *base.AnyValue {
+	// If args is nil
 	if args == nil {
-		data.Value = c.config
-		return data
+		return base.Eval(c.config)
 	}
 
 	// Parser args
 	argsGroup := strings.Split(args[0], ".")
 	if argsGroup[0] == "" {
-		data.Value = c.config
-		return data
+		return base.Eval(c.config)
 	}
 
 	// Walk config.
 	var config interface{} = c.config
-
 	for _, key := range argsGroup {
 		switch config.(type) {
 		case map[string]string:
@@ -68,6 +71,5 @@ func (c *Config) GetConfig(args ...string) (data *base.ConfigValue) {
 			break
 		}
 	}
-	data.Value = config
-	return data
+	return base.Eval(config)
 }

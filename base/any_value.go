@@ -14,6 +14,11 @@ func Eval(value interface{}) *AnyValue {
 	return &AnyValue{value: value}
 }
 
+// 返回原值
+func (av *AnyValue) ToValue() interface{} {
+	return av.value
+}
+
 // 转成int类型
 func (av *AnyValue) ToInt() int {
 	return utils.Convert.ToTargetType(av.value, utils.Int).(int)

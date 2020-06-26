@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/go-touch/regin/base"
 	"github.com/go-touch/regin/app/core"
+	"github.com/go-touch/regin/base"
 )
 
 type Application struct {
@@ -20,7 +20,7 @@ var App *Application
 func init() {
 	App = &Application{
 		attribute: make(map[string]string),
-		config:    &core.Config{},
+		config:    &core.Config{FileFormat: "ini"},
 		exception: &core.Exception{},
 		logger:    &core.Logger{},
 		router:    base.Router,
@@ -32,7 +32,7 @@ func init() {
 }
 
 // Get application ConfigValue.
-func (a *Application) GetConfig(args ...string) *base.ConfigValue {
+func (a *Application) GetConfig(args ...string) *base.AnyValue {
 	return a.config.GetConfig(args...)
 }
 

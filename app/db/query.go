@@ -2,10 +2,10 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-touch/regin/app/db/query"
 	"strconv"
-	"errors"
 	"strings"
 )
 
@@ -27,9 +27,8 @@ func init() {
 }
 
 // 载入配置
-func (qa *QueryAdapter) LoadConfig(config map[string]interface{}) error {
+func (qa *QueryAdapter) Init(config map[string]interface{}) {
 	qa.config = config
-	return nil
 }
 
 // 读取配置
@@ -38,14 +37,12 @@ func (qa *QueryAdapter) GetConfig(arg string) (config map[string]string, err err
 
 	// 解析参数
 	argGroup := strings.Split(arg, ".")
-
 	if argGroup[0] == "" {
 		return config, errors.New("the database's identify is not set")
 	}
 
 	// 遍历处理
 	configTmp := qa.config
-
 	for _, key := range argGroup {
 		switch t := configTmp.(type) {
 		case nil:

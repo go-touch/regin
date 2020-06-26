@@ -103,7 +103,7 @@ func (ch *ConvertHandler) ToTargetType(object interface{}, targetType string) in
 		} else if targetType == String { // string 转 string
 			return object
 		} else if targetType == Bool { // string 转 bool
-			if object.(string) != "" {
+			if object.(string) == "true" {
 				return true
 			}
 			return false
@@ -236,7 +236,6 @@ func (ch *ConvertHandler) ByteSliceToMap(byteSliceTData []byte) (result map[stri
 // 转换 map[string]interface{} 到 json(string)
 func (ch *ConvertHandler) MapToJson(mapData map[string]interface{}) (jsonData string, err error) {
 	result, err := json.Marshal(mapData)
-
 	if err == nil {
 		jsonData = string(result)
 	}

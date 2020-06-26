@@ -1,10 +1,10 @@
 package cache
 
 import (
-	"github.com/garyburd/redigo/redis"
-	"strings"
-	"strconv"
 	"errors"
+	"github.com/garyburd/redigo/redis"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -29,9 +29,8 @@ func init() {
 }
 
 // Init config.
-func (ed *RedisDispatch) Init(config map[string]interface{}) error {
+func (ed *RedisDispatch) Init(config map[string]interface{}) {
 	ed.config = config
-	return nil
 }
 
 // 读取配置

@@ -1,8 +1,8 @@
 package service
 
 import (
-	"runtime"
 	"errors"
+	"runtime"
 )
 
 // Init system component.
@@ -12,7 +12,7 @@ func (a *Application) initCore() {
 
 	// Init logger.
 	pattern := ""
-	if pattern = a.GetConfig("main.errorLog.pattern").ToString(); pattern == "" {
+	if pattern = a.GetConfig("server.error.pattern").ToString(); pattern == "" {
 		pattern = "local"
 	}
 	a.logger.Init(pattern, a.GetAttribute("RuntimeLogPath"))
@@ -38,7 +38,7 @@ func (a *Application) ErrorCatch() {
 
 		// Handle error log.
 		if openLog := a.GetConfig("main.errorLog.isOpen").ToString(); openLog == "1" {
-			a.logger.Record(stackString)
+			_ = a.logger.Record(stackString)
 		}
 
 		// Set error message.

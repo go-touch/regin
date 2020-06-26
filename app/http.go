@@ -1,11 +1,11 @@
 package app
 
 import (
+	"errors"
 	"github.com/go-touch/regin/app/service"
 	"github.com/go-touch/regin/base"
 	"github.com/go-touch/regin/utils"
 	"runtime"
-	"errors"
 )
 
 type Http struct {
@@ -19,7 +19,13 @@ type Http struct {
 func NewHttp() *Http {
 	server := &Http{
 		Application: service.App,
-		addrAndPort: "127.0.0.1:8080",
+	}
+
+	// 获取
+	if host := service.App.GetConfig("server.main.httpHost").ToString(); host == "" {
+		panic("服务器端口未设置")
+	} else {
+		server.addrAndPort = host
 	}
 	return server
 }
@@ -59,8 +65,8 @@ func (h *Http) ErrorCatch() {
 		stackString := h.GetException().Stack(r, buf)
 
 		// Handle error log.
-		if openLog := h.GetConfig("main.errorLog.isOpen").ToString(); openLog == "1" {
-			h.GetLogger().Record(stackString)
+		if openLog := h.GetConfig("server.error.log").ToBool(); openLog == true {
+			_ = h.GetLogger().Record(stackString)
 		}
 
 		// Set error message.

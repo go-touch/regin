@@ -1,8 +1,8 @@
 package core
 
 import (
-	"github.com/go-touch/regin/utils"
 	"fmt"
+	"github.com/go-touch/regin/utils"
 )
 
 type Logger struct {
@@ -11,10 +11,9 @@ type Logger struct {
 }
 
 // Init Logger
-func (l *Logger) Init(pattern string, logPath string) error {
+func (l *Logger) Init(pattern string, logPath string) {
 	l.pattern = pattern
 	l.logPath = logPath
-	return nil
 }
 
 // Record log message.

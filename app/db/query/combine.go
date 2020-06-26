@@ -2,8 +2,8 @@ package query
 
 import (
 	"database/sql"
-	"strings"
 	"errors"
+	"strings"
 )
 
 type Combine struct {
@@ -36,7 +36,7 @@ func (c *Combine) Query(sql string, args ...interface{}) (result interface{}, er
 	case "DELETE":
 		return c.modifyRecord(sql, args...)
 	}
-	return "", errors.New("this sql is illegal,Please check")
+	return "", errors.New("this sql is illegal,Please check it")
 }
 
 // Begin starts a transaction.
@@ -123,7 +123,7 @@ func (c *Combine) parserRows(rows *sql.Rows) (list []map[string]interface{}, err
 		}
 
 		// 数据行接收
-		rows.Scan(args...)
+		_ = rows.Scan(args...)
 		row := make(map[string]interface{})
 		for i := 0; i < length; i++ {
 			key := columns[i]
