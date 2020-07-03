@@ -65,7 +65,6 @@ func (av *AnyValue) ToByteSlice() []byte {
 func (av *AnyValue) ToStringSlice() []string {
 	value := make([]string, 0)
 	v := utils.Convert.ToTargetType(av.value, utils.StringSlice)
-
 	if v != nil {
 		value = v.([]string)
 	}

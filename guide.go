@@ -1,8 +1,8 @@
 package regin
 
 import (
-	"github.com/go-touch/regin/origin"
 	"github.com/go-touch/regin/app"
+	"github.com/go-touch/regin/origin"
 )
 
 type Guider struct{}
@@ -18,5 +18,3 @@ func init() {
 func (e *Guider) HttpService() {
 	origin.Engine.HttpServer(app.NewHttp())
 }
-
-

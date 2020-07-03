@@ -13,9 +13,8 @@ type Combine struct {
 }
 
 // Set Db
-func (c *Combine) SetDb(db *sql.DB) error {
+func (c *Combine) SetDb(db *sql.DB) {
 	c.db = db
-	return nil
 }
 
 // Execute SQL
@@ -37,6 +36,30 @@ func (c *Combine) Query(sql string, args ...interface{}) (result interface{}, er
 		return c.modifyRecord(sql, args...)
 	}
 	return "", errors.New("this sql is illegal,Please check it")
+}
+
+// 查询一条记录
+func (c *Combine) QueryRow(sql string, args ...interface{}) *sql.Row {
+	if c.tx != nil {
+		return c.tx.QueryRow(sql, args...)
+	}
+	return c.db.QueryRow(sql, args...)
+}
+
+// 查询多条记录
+func (c *Combine) QueryAll(sql string, args ...interface{}) (*sql.Rows, error) {
+	if c.tx != nil {
+		return c.tx.Query(sql, args...)
+	}
+	return c.db.Query(sql, args...)
+}
+
+// 插入[更新][删除]n条记录
+func (c *Combine) Exec(sql string, args ...interface{}) (sql.Result, error) {
+	if c.tx != nil {
+		return c.tx.Exec(sql, args...)
+	}
+	return c.db.Exec(sql, args...)
 }
 
 // Begin starts a transaction.
