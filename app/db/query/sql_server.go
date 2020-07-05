@@ -23,10 +23,10 @@ type SqlServerQuery struct {
 func (ssq *SqlServerQuery) Clone() BaseQuery {
 	return &SqlServerQuery{
 		Combine:  ssq.Combine,
-		table:    parts.MakeTable(""),
+		table:    parts.MakeTable(),
 		field:    parts.MakeField(),
 		where:    parts.MakeWhere(),
-		order:    parts.MakeOrder(""),
+		order:    parts.MakeOrder(),
 		limit:    parts.MakeLimit(0, 1000),
 		values:   parts.MakeValues(),
 		sqlExpr:  "",
@@ -36,10 +36,10 @@ func (ssq *SqlServerQuery) Clone() BaseQuery {
 
 // 重置结构体
 func (ssq *SqlServerQuery) Reset() error {
-	ssq.table = parts.MakeTable("")
+	ssq.table = parts.MakeTable()
 	ssq.field = parts.MakeField()
 	ssq.where = parts.MakeWhere()
-	ssq.order = parts.MakeOrder("")
+	ssq.order = parts.MakeOrder()
 	ssq.limit = parts.MakeLimit(0, 1000)
 	ssq.values = parts.MakeValues()
 	ssq.sqlExpr = ""
@@ -128,13 +128,18 @@ func (ssq *SqlServerQuery) FetchAll() (*sql.Rows, error) {
 }
 
 // 设置表达式类型
-func (ssq *SqlServerQuery) SetSQLType(t string) error {
+func (ssq *SqlServerQuery) SetSqlType(t string) error {
 	ssq.sqlExprType = t
 	return nil
 }
 
+// 获取表达式类型
+func (ssq *SqlServerQuery) GetSqlType() string {
+	return ssq.sqlExprType
+}
+
 // 创建SQL表达式
-func (ssq *SqlServerQuery) CreateSQL() BaseQuery {
+func (ssq *SqlServerQuery) SetSql() BaseQuery {
 	return ssq
 }
 

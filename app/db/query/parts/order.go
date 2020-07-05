@@ -13,7 +13,7 @@ type SubOrder struct {
 	expr string // 表达式, for example: id ASC
 }
 
-func MakeOrder(expr string) *Order {
+func MakeOrder() *Order {
 	return &Order{
 		members: make([]*SubOrder, 0),
 	}

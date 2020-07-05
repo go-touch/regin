@@ -1,16 +1,11 @@
 package utils
 
 import (
-	"time"
+	"log"
+	"os"
 	"path/filepath"
 	"strings"
-	"os"
-	"log"
-)
-
-const (
-	Error = "error"
-	Info  = "info"
+	"time"
 )
 
 type Logger struct {

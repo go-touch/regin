@@ -10,10 +10,8 @@ type Table struct {
 }
 
 // make &Table.
-func MakeTable(expr string) *Table {
-	return &Table{
-		expr: expr,
-	}
+func MakeTable() *Table {
+	return &Table{}
 }
 
 // Get SQL Express statement.

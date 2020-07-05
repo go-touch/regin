@@ -34,10 +34,10 @@ type MysqlQuery struct {
 func (mq *MysqlQuery) Clone() BaseQuery {
 	return &MysqlQuery{
 		Combine:     mq.Combine,
-		table:       parts.MakeTable(""),
+		table:       parts.MakeTable(),
 		field:       parts.MakeField(),
 		where:       parts.MakeWhere(),
-		order:       parts.MakeOrder(""),
+		order:       parts.MakeOrder(),
 		limit:       parts.MakeLimit(0, 1000),
 		values:      parts.MakeValues(),
 		set:         parts.MakeSet(),
@@ -49,10 +49,10 @@ func (mq *MysqlQuery) Clone() BaseQuery {
 
 // 重置结构体
 func (mq *MysqlQuery) Reset() error {
-	mq.table = parts.MakeTable("")
+	mq.table = parts.MakeTable()
 	mq.field = parts.MakeField()
 	mq.where = parts.MakeWhere()
-	mq.order = parts.MakeOrder("")
+	mq.order = parts.MakeOrder()
 	mq.limit = parts.MakeLimit(0, 1000)
 	mq.values = parts.MakeValues()
 	mq.set = parts.MakeSet()
@@ -114,13 +114,18 @@ func (mq *MysqlQuery) Set(valueMap map[string]interface{}) BaseQuery {
 }
 
 // 设置表达式类型
-func (mq *MysqlQuery) SetSQLType(t string) error {
-	mq.sqlExprType = t
+func (mq *MysqlQuery) SetSqlType(sType string) error {
+	mq.sqlExprType = strings.ToUpper(sType)
 	return nil
 }
 
+// 获取表达式类型
+func (mq *MysqlQuery) GetSqlType() string {
+	return mq.sqlExprType
+}
+
 // 创建SQL表达式
-func (mq *MysqlQuery) CreateSQL() BaseQuery {
+func (mq *MysqlQuery) SetSql() BaseQuery {
 	switch strings.ToUpper(mq.sqlExprType) {
 	case "SELECT":
 		mq.sqlExpr = sqlSELECT

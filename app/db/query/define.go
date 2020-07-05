@@ -24,8 +24,9 @@ type BaseQuery interface {
 	Limit(limit ...int) BaseQuery
 	Values(valueMap map[string]interface{}) BaseQuery
 	Set(valueMap map[string]interface{}) BaseQuery
-	SetSQLType(t string) error
-	CreateSQL() BaseQuery
+	SetSqlType(sType string) error
+	GetSqlType() string
+	SetSql() BaseQuery
 	GetSql() string
 	FetchRow() *sql.Row
 	FetchAll() (*sql.Rows, error)

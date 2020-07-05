@@ -1,24 +1,26 @@
 package base
 
 import (
-	"net/http"
-	"github.com/gin-gonic/gin"
-	"strings"
-	"io/ioutil"
 	"encoding/json"
 	"encoding/xml"
+	"github.com/gin-gonic/gin"
+	"io/ioutil"
+	"mime/multipart"
+	"net/http"
+	"strings"
 )
 
 const defaultMultipartMemory = 32 << 20 // 32 MB
 
 type Request struct {
 	*http.Request
-	paramMap  StringMap
-	getMap    StringMap
-	cookieMap StringMap
-	postMap   AnyMap
-	rawSlice  []byte
-	error     error
+	paramMap      StringMap
+	getMap        StringMap
+	cookieMap     StringMap
+	postMap       AnyMap
+	postFileSlice []*multipart.FileHeader
+	rawSlice      []byte
+	error         error
 }
 
 // Define static Request
@@ -31,9 +33,9 @@ func init() {
 // Create an new Request.
 func (r *Request) Factory(c *gin.Context) *Request {
 	request := &Request{Request: c.Request}
-	request.initParam(c.Params)
-	request.initGet()
-	request.initPost()
+	_ = request.initParam(c.Params)
+	_ = request.initGet()
+	_ = request.initPost()
 	return request
 }
 
@@ -60,14 +62,12 @@ func (r *Request) initGet() error {
 // Init POST data.
 func (r *Request) initPost() error {
 	r.postMap = AnyMap{}
-
 	if r.Method != "POST" {
 		return r.error
 	}
 
 	// Handle data by Content-Type.
 	ct := r.Header.Get("Content-Type")
-
 	if strings.Contains(ct, "/x-www-form-urlencoded") || strings.Contains(ct, "/form-data") {
 		if r.error = r.ParseMultipartForm(defaultMultipartMemory); r.error != nil && r.error != http.ErrNotMultipart {
 			return r.error
@@ -110,7 +110,6 @@ func (r *Request) GetError() error {
 //  Path data.
 func (r *Request) Param(key string, defaultValue ...string) string {
 	val := ""
-
 	if defaultValue != nil {
 		val = defaultValue[0]
 	}
@@ -128,7 +127,6 @@ func (r *Request) ParamAll() StringMap {
 // Get data.
 func (r *Request) Get(key string, defaultValue ...string) string {
 	val := ""
-
 	if defaultValue != nil {
 		val = defaultValue[0]
 	}
@@ -146,7 +144,6 @@ func (r *Request) GetAll() StringMap {
 // POST param.
 func (r *Request) Post(key string, defaultValue ...interface{}) (value interface{}, err error) {
 	var val interface{}
-
 	if defaultValue != nil {
 		val = defaultValue[0]
 	}
@@ -159,4 +156,14 @@ func (r *Request) Post(key string, defaultValue ...interface{}) (value interface
 // POST param array.
 func (r *Request) PostAll() (anyMap AnyMap, err error) {
 	return r.postMap, r.error
+}
+
+// POST file.
+func (r *Request) PostFile(name string) []*multipart.FileHeader {
+	if r.MultipartForm != nil && r.MultipartForm.File != nil {
+		if fileHeaders, ok := r.MultipartForm.File[name]; ok {
+			r.postFileSlice = fileHeaders
+		}
+	}
+	return r.postFileSlice
 }

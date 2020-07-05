@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"github.com/go-touch/regin/app/db/model"
 	"github.com/go-touch/regin/app/db/query"
 )
@@ -47,10 +46,6 @@ func Model(userModel interface{}) *Dao {
 	}
 }
 
-func Test(){
-	fmt.Println(tableContainer)
-}
-
 // 执行SQL
 func (d *Dao) Query(sql string, args ...interface{}) (result interface{}, err error) {
 	return d.query.Query(sql, args...)
@@ -77,7 +72,17 @@ func (d *Dao) Where(field string, value interface{}, linkSymbol ...string) *Dao 
 // Where组条件
 func (d *Dao) WhereMap(fieldMap map[string]interface{}, linkSymbol ...string) *Dao {
 	for field, value := range fieldMap {
-		d.query.Where(field+" = ?", value, linkSymbol...)
+		d.Where(field, value, linkSymbol...)
+	}
+	return d
+}
+
+// 绑定数据
+func (d *Dao) Values(valueMap map[string]interface{}) *Dao {
+	if d.query.GetSqlType() == "INSERT" {
+		d.query.Values(valueMap)
+	} else {
+		d.query.Set(valueMap)
 	}
 	return d
 }
@@ -104,18 +109,6 @@ func (d *Dao) Limit(limit ...int) *Dao {
 	return d
 }
 
-// 插入时绑定数据
-func (d *Dao) Values(valueMap map[string]interface{}) *Dao {
-	d.query.Values(valueMap)
-	return d
-}
-
-// 更新时绑定数据
-func (d *Dao) Set(valueMap map[string]interface{}) *Dao {
-	d.query.Set(valueMap)
-	return d
-}
-
 // 是否打印SQL
 func (d *Dao) Sql() *Dao {
 	d.isSQL = true
@@ -126,8 +119,7 @@ func (d *Dao) Sql() *Dao {
 func (d *Dao) FetchRow(userFunc ...UserFunc) *AnyValue {
 	defer d.reset()
 	_ = d.query.Limit(1)
-	_ = d.query.SetSQLType("SELECT")
-	_ = d.process(userFunc...)
+	_ = d.fetch(userFunc...)
 	if d.isSQL {
 		return Eval(d.query.GetSql())
 	}
@@ -137,51 +129,55 @@ func (d *Dao) FetchRow(userFunc ...UserFunc) *AnyValue {
 // 查询多条记录
 func (d *Dao) FetchAll(userFunc ...UserFunc) *AnyValue {
 	defer d.reset()
-	_ = d.query.SetSQLType("SELECT")
-	_ = d.process(userFunc...)
+	_ = d.fetch(userFunc...)
 	if d.isSQL {
 		return Eval(d.query.GetSql())
 	}
 	return d.parserRows()
 }
 
+// Common SELECT part.
+func (d *Dao) fetch(userFunc ...UserFunc) *AnyValue {
+	_ = d.query.SetSqlType("SELECT")
+	// 执行过程
+	if userFunc != nil {
+		userFunc[0](d)
+	}
+	// 字段处理
+	if d.query.GetField().GetExpr() == "" {
+		d.query.Field(d.table.GetTableFields())
+	}
+	_ = d.query.SetSql() // SQL处理
+	return nil
+}
+
 // 插入记录
 func (d *Dao) Insert(userFunc ...UserFunc) *AnyValue {
 	defer d.reset()
-	_ = d.query.SetSQLType("INSERT")
-	_ = d.process(userFunc...)
-	if d.isSQL {
-		return Eval(d.query.GetSql())
-	}
-	// 执行结果
-	result, err := d.query.Modify()
-	if err != nil {
-		return Eval(err)
-	}
-	return Eval(result)
+	return d.modify("INSERT", userFunc...)
 }
 
 // 更新记录
 func (d *Dao) Update(userFunc ...UserFunc) *AnyValue {
 	defer d.reset()
-	_ = d.query.SetSQLType("UPDATE")
-	_ = d.process(userFunc...)
-	if d.isSQL {
-		return Eval(d.query.GetSql())
-	}
-	// 执行结果
-	result, err := d.query.Modify()
-	if err != nil {
-		return Eval(err)
-	}
-	return Eval(result)
+	return d.modify("UPDATE", userFunc...)
 }
 
 // 删除记录
 func (d *Dao) DELETE(userFunc ...UserFunc) *AnyValue {
 	defer d.reset()
-	_ = d.query.SetSQLType("DELETE")
-	_ = d.process(userFunc...)
+	return d.modify("DELETE", userFunc...)
+}
+
+// 执行过程
+func (d *Dao) modify(sType string, userFunc ...UserFunc) *AnyValue {
+	_ = d.query.SetSqlType(sType)
+	// 执行过程
+	if userFunc != nil {
+		userFunc[0](d)
+	}
+	// SQL处理
+	_ = d.query.SetSql()
 	if d.isSQL {
 		return Eval(d.query.GetSql())
 	}
@@ -191,18 +187,6 @@ func (d *Dao) DELETE(userFunc ...UserFunc) *AnyValue {
 		return Eval(err)
 	}
 	return Eval(result)
-}
-
-// Common SELECT part.
-func (d *Dao) process(userFunc ...UserFunc) error {
-	if userFunc != nil { // 执行过程
-		userFunc[0](d)
-	}
-	if d.query.GetField().GetExpr() == "" { // 字段处理
-		d.query.Field(d.table.GetTableFields())
-	}
-	_ = d.query.CreateSQL() // SQL处理
-	return nil
 }
 
 // 解析单行记录
@@ -262,11 +246,6 @@ func (d *Dao) parserRows() *AnyValue {
 		list = append(list, row)
 	}
 	return Eval(list)
-}
-
-// 调用回调函数
-func (d *Dao) callUserFunc(userFunc UserFunc) {
-	userFunc(d)
 }
 
 // 重置结构体

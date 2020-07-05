@@ -8,6 +8,7 @@ type AnyMap map[string]interface{}        // [MapType] key is string,value is an
 type StringMap map[string]string          // [MapType] key is string,value is string type
 type SliceMap map[string][]string         // [MapType] key is string,value is Slice type
 type GeneralMap map[string]AppAction      // [MapType] key is string,value is AppAction type
+type AnySlice []interface{}               // [SliceType] key is index,value为任意类型
 type StringMapSlice []map[string]string   // [SliceType] key is index,value为(key为string,value为string)的map
 type AnyMapSlice []map[string]interface{} // [SliceType] key is index,value为(key为string,value为任意类型)的map
 

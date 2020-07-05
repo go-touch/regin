@@ -1,4 +1,4 @@
-package db
+package cache
 
 import (
 	"errors"
@@ -6,23 +6,17 @@ import (
 	"strings"
 )
 
-type ConfigStorage struct {
+type Abstract struct {
 	config interface{}
 }
 
-var Config *ConfigStorage
-
-func init() {
-	Config = &ConfigStorage{}
+// Init config.
+func (a *Abstract) Init(config map[string]interface{}) {
+	a.config = config
 }
 
-// 初始化数据库配置
-func (cs *ConfigStorage) Init(config map[string]interface{}) {
-	cs.config = config
-}
-
-// 获取配置
-func (cs *ConfigStorage) GetConfig(arg string) (config map[string]string, err error) {
+// 读取配置
+func (a *Abstract) GetConfig(arg string) (config map[string]string, err error) {
 	config = make(map[string]string)
 
 	// 解析参数
@@ -32,7 +26,7 @@ func (cs *ConfigStorage) GetConfig(arg string) (config map[string]string, err er
 	}
 
 	// 遍历处理
-	configTmp := cs.config
+	configTmp := a.config
 	for _, key := range argGroup {
 		switch t := configTmp.(type) {
 		case nil:

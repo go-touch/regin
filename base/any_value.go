@@ -14,6 +14,15 @@ func Eval(value interface{}) *AnyValue {
 	return &AnyValue{value: value}
 }
 
+// 返回错误信息
+func (av *AnyValue) ToError() error {
+	switch utils.Convert.GetType(av.value) {
+	case utils.Error:
+		return av.value.(error)
+	}
+	return nil
+}
+
 // 返回原值
 func (av *AnyValue) ToValue() interface{} {
 	return av.value
@@ -43,7 +52,6 @@ func (av *AnyValue) ToBool() bool {
 func (av *AnyValue) ToIntSlice() []int {
 	value := make([]int, 0)
 	v := utils.Convert.ToTargetType(av.value, utils.IntSlice)
-
 	if v != nil {
 		value = v.([]int)
 	}
@@ -54,7 +62,6 @@ func (av *AnyValue) ToIntSlice() []int {
 func (av *AnyValue) ToByteSlice() []byte {
 	value := make([]byte, 0)
 	v := utils.Convert.ToTargetType(av.value, utils.ByteSlice)
-
 	if v != nil {
 		value = v.([]byte)
 	}
@@ -93,15 +100,15 @@ func (av *AnyValue) ToAnyMap() map[string]interface{} {
 
 // 转成[]map[string]string类型
 func (av *AnyValue) ToStringMapSlice() []map[string]string {
-	value := make([]map[string]string, 0)
-	t := utils.Convert.GetType(av.value)
-
-	if t == "StringMapSlice" {
-		value = av.value.([]map[string]string)
-	} else if t == "AnyMapSlice" {
+	switch utils.Convert.GetType(av.value) {
+	case utils.StringMapSlice:
+		return av.value.([]map[string]string)
+	case utils.AnyMapSlice:
+		value := make([]map[string]string, 0)
 		for k, v := range av.value.([]map[string]interface{}) {
 			value[k] = utils.Convert.ToTargetType(v, utils.StringMap).(map[string]string)
 		}
+		return value
 	}
-	return value
+	return nil
 }

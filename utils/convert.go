@@ -22,6 +22,7 @@ const (
 	AnyMapSlice    = "AnyMapSlice"    // 类型: []map[string]interface{}
 	StringMap      = "StringMap"      // 类型: map[string]string
 	AnyMap         = "AnyMap"         // 类型: map[string]interface{}
+	Error          = "Error"          // 类型: error
 )
 
 // 定义ConvertHandler
@@ -58,6 +59,8 @@ func (ch *ConvertHandler) GetType(object interface{}) string {
 		return StringMap
 	case map[string]interface{}:
 		return AnyMap
+	case error:
+		return Error
 	default:
 		_ = t
 	}
