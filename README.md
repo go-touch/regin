@@ -76,10 +76,10 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	}
 
 #### 路径访问
-	格式： http://127.0.0.1/module/controller/action
+	格式: http://127.0.0.1/module/controller/action
 	例如: http://127.0.0.1/demo/v1/index
-	备注：regin中的路由比较松散,url中pathinfo采用三段路径, 通过取三段信息,使用 . 拼接作为key, 读取路由map里面对应的action, 
-	因此路径的含义可依据路由配置定义,并无严格规定.
+	备注: regin中的路由比较松散,url中pathinfo采用三段路径, 通过获取三段路由信息,使用 . 拼接作为key,读取路由map里面对应的action, 
+	(action定义可查看web应用介绍) 因此路径的含义可依据路由配置定义,并无严格规定.
 ### 服务配置
 #### xxx/config/server.ini
 	; 主配置
@@ -114,12 +114,12 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 		AppAction
 	}
 	
-	// Before action method. // 该方法会在调用方法 Exec 前执行, 可通过其实现token验证、鉴权等业务,通过返回值*result,控制响应结果
+	// Before action method. // 需实现该方法,在调用方法 Exec 前执行, 可通过其实现token验证、鉴权等业务,通过返回值*result,控制响应结果
 	func (a *Action) BeforeExec(request *Request) (result *Result) { 
 		return
 	}
 	
-	// Action method. // 该方法为action主业务逻辑方法,用于实现具体的业务
+	// Action method. // 需实现该方法,用于实现具体的业务逻辑
 	func (a *Action) Exec(request *Request) (result *Result) { 
 		return
 	}
@@ -156,3 +156,41 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 		result.SetData("data", ret.ToStringMap())
 		return result
 	}
+
+#### *base.Request实例(封装get、post、param方法,自动json、xml解析)
+> GetMethod() string 获取请求方式  
+> GetError() error 获取error信息  
+> Param(key string, defaultValue ...string) 获取pathinfo的路径信息    
+> ParamAll() StringMap // 获取一个map[string]string, 类型属于regin的StringMap  
+> Post(key string, defaultValue ...interface{}) (value interface{}, err error)     
+> PostAll() (anyMap AnyMap, err error) 获取一个map[string]interface{}, 类型属于regin的AnyMap  
+> PostFile(name string) []*multipart.FileHeader 用于获取文件io句柄  
+> ...
+
+#### *AnyValue值类型（用于数据转换,对于不确定类型interfa{}比较适用,包名base)
+> Eval(value interface{}) *AnyValue 通过调用此方法获取 *AnyValue  
+> (av *AnyValue) ToError() error 返回错误信息  
+> (av *AnyValue) ToValue() interface{} 返回原值  
+> (av *AnyValue) ToInt() int 转成int类型  
+> (av *AnyValue) ToByte() byte 转成byte类型  
+> (av *AnyValue) ToString() string 转成string类型  
+> (av *AnyValue) ToBool() bool 转成bool类型  
+> (av *AnyValue) ToStringMap() map[string]string 转成map[string]string类型  
+> ...
+
+#### regin定义的数据类型 (业务中可直接使用,包名base)
+	// 预定义常见数据类型
+	type DataType interface {
+		Set(key string, value interface{})
+		Get(key string) *AnyValue
+	}
+	type AnyMap map[string]interface{}        // [MapType] key is string,value is 任意类型
+	type StringMap map[string]string          // [MapType] key is string,value is string 类型
+	type IntMap map[string]int                // [MapType] key is string,value is int t类型
+	type StringSliceMap map[string][]string   // [MapType] key is string,value is string Slice 类型
+	type GeneralMap map[string]AppAction      // [MapType] key is string,value is AppAction t类型
+	type AnySlice []interface{}               // [SliceType] key is index,value为任意类型
+	type StringMapSlice []map[string]string   // [SliceType] key is index,value为(key为string,value为string)的map
+	type AnyMapSlice []map[string]interface{} // [SliceType] key is index,value为(key为string,value为任意类型)的map
+	
+	备注: 部分值为 interface{} 的类型实现了 DataType 接口, 需要类型转换可通过Get方法获取到一个 *AnyValue
