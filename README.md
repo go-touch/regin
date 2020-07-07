@@ -7,6 +7,9 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 - 路由配置
 - 服务配置
 - Web应用
+- 数据库
+- Redis
+- utils工具
 
 ### 安装与配置  
 #### 1. 安装Go (version 1.10+), 然后可使用下面命令进行安装regin
@@ -34,6 +37,8 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	func main() {
 		regin.Guide.HttpService()
 	}
+
+	$ go run main.go
 
 ### 项目结构
 - application
@@ -99,7 +104,7 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	调用示例: 
 	config := service.App.GetConfig("server.main.httpHost").ToString()
 
-	备注: server.ini、database.ini、redis.ini等必要配置项,字段均为框架使用,不可更改.
+	备注: server.ini、database.ini、redis.ini等必要配置项,文件字段名均为regin使用,不可修改.
 		
 ### Web应用
 #### 基类action的代码示例:
@@ -157,7 +162,7 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 		return result
 	}
 
-#### *base.Request实例(封装get、post、param方法,自动json、xml解析)
+#### *base.Request实例(封装param、get、post方法,自动json、xml解析)
 > GetMethod() string 获取请求方式  
 > GetError() error 获取error信息  
 > Param(key string, defaultValue ...string) 获取pathinfo的路径信息    
@@ -166,6 +171,49 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 > PostAll() (anyMap AnyMap, err error) 获取一个map[string]interface{}, 类型属于regin的AnyMap  
 > PostFile(name string) []*multipart.FileHeader 用于获取文件io句柄  
 > ...
+
+#### *base.Result实例(用于响应客户端)
+	type Result struct {
+		Type   string // 可选值为:String、Json、Html、
+		Page   string // 响应页面(Type = Html时必填)
+		Status int    // 状态码 200正常状态
+		Msg    string // 提示消息
+		Data   AnyMap // 业务数据
+	}
+
+	// 定义RespResult
+	var ResultInvoker *Result
+	
+	func init() {
+		ResultInvoker = &Result{}
+	}
+
+	// 创建Json result
+	func (r *Result) CreateJson(status int, msg string) *Result {
+		return &Result{
+			Type:   "Json",
+			Page:   "",
+			Status: status,
+			Msg:    msg,
+			Data:   AnyMap{"code": 0, "msg": "", "data": ""},
+		}
+	}
+
+	// 创建Html result
+	func (r *Result) CreateHtml(page string, status int, msg string) *Result {
+		return &Result{
+			Type:   "Html",
+			Page:   page,
+			Status: status,
+			Msg:    msg,
+			Data:   AnyMap{},
+		}
+	}
+> ResultInvoker.CreateJson() // ResultInvoker为预定义的 *base.Result 实例  
+> (r *Result) CreateJson(status int, msg string) *Result // 创建一个可返回json数据的 *Result   
+> (r *Result) CreateHtml(page string, status int, msg string) *Result // 创建一个可返回html数据的 *Result  
+> (r *Result) SetData(key string, value interface{}) // 修改业务数据即 *base.Result 的 Data 字段   
+> (r *Result) GetData(key string) interface{} // 获取业务数据即 *base.Result 的 Data 字段   
 
 #### *AnyValue值类型（用于数据转换,对于不确定类型interfa{}比较适用,包名base)
 > Eval(value interface{}) *AnyValue 通过调用此方法获取 *AnyValue  
@@ -194,3 +242,5 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	type AnyMapSlice []map[string]interface{} // [SliceType] key is index,value为(key为string,value为任意类型)的map
 	
 	备注: 部分值为 interface{} 的类型实现了 DataType 接口, 需要类型转换可通过Get方法获取到一个 *AnyValue
+
+### 数据库
