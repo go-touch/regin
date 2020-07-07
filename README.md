@@ -255,7 +255,7 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	
 	; 从库
 	slave.driverName = mysql
-	slave.dataSourceName = root:root@tcp(127.0.0.1:3306)/dbName?charset=utf8
+	slave.dataSourceName = root:root@tcp(127.0.0.1:3306)/dbName?charset=utf8 // 连接参数
 	slave.maxIdleConn = 100
 	slave.maxOpenConn = 100
 
