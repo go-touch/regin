@@ -339,7 +339,7 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 		dao.Sql()
 	})
 	fmt.Println(ret.ToString()) // 打印字符串sql语句
-##### FetchRow(userFunc ...UserFunc) *AnyValue // 查询一条记录,返回\*db.AnyValue,可实现数据转换
+##### FetchRow(userFunc ...UserFunc) *AnyValue // 查询一条记录,返回\*db.AnyValue,可实现数据转换.参数userFunc:用户回调函数,接收Dao
 	ret := db.Model("Users").FetchRow(func(dao *db.Dao) {
 		dao.Where("id", 1)
 	})
@@ -369,3 +369,99 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	})
 	ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
 	ret.ToAffectedRows() // 返回受影响行数
+#### 完整数据库操作实例(假设model已注册)
+##### 查询一条数据
+	// 链式操作
+	ret := db.Model("Users").Field("username").Where("id", 1).FetchRow()
+
+	// 匿名函数回调操作
+	ret := db.Model("Users").FetchRow(func(dao *db.Dao) {
+		dao.Field("username")
+		dao.Where("id", 1)
+	})
+	ret.ToError()
+	ret.ToStringMap()
+##### 查询多条数据
+	// 链式操作
+	ret := db.Model("Users").Field("username").Where("id", 1).FetchAll()
+
+	// 匿名函数回调操作
+	ret := db.Model("Users").FetchAll(func(dao *db.Dao) {
+		dao.Field("username")
+		dao.Where("id", 1)
+	})
+	ret.ToError()
+	ret.ToStringMapSlice()
+##### 插入一条数据
+	// 链式操作
+	ret: db.Model("Users").Values(map[string]interface{}{"username":"zhangsan"}).Insert()
+
+	// 匿名函数回调操作
+	ret := db.Model("Users").Insert(func(dao *db.Dao) {
+		dao.Values(map[string]interface{}{"username":"zhangsan"})
+	})
+	ret.ToError()
+	ret.ToLastInsertId()
+
+##### 更新一条数据
+	// 链式操作
+	ret := db.Model("Users").Values(map[string]interface{}{"username":"zhangsan"}).Where("id", 1).Update()
+
+	// 匿名函数回调操作
+	ret := db.Model("Users").Update(func(dao *db.Dao) {
+		dao.Values(map[string]interface{}{"username":"zhangsan"})
+		dao.Where("id", 1)
+	})
+	ret.ToError()
+	ret.ToAffectedRows()
+##### 删除一条数据
+	// 链式操作
+	ret := db.Model("Users").Where("id", 1).DELETE()
+
+	// 匿名函数回调操作
+	ret := db.Model("Users").DELETE(func(dao *db.Dao) {
+		dao.Where("id", 1)
+	})
+	ret.ToError()
+	ret.ToAffectedRows()
+
+### Redis
+
+#### 配置项 xxx/config/dev/redis.ini
+	[plus_center] // // 配置分组,必填
+	master.host = 127.0.0.1:6379 // 主机端口
+	master.password = "" // 密码
+	master.db = 10 // 库标
+	master.MaxIdle = 16 // 空闲连接数
+	master.MaxActive = 32 // 最大连接数 
+	master.IdleTimeout = 120 // 超时时间
+
+#### RedisModel的示例
+	package redis
+
+	type TestModel struct {}
+	
+	// Redis库标识
+	func (b *Base) Identify() string {
+		return "plus_center.master"
+	}
+> (this *Users) Identify() string 返回redis连接参数,对应数据库配置的key链关系
+
+#### Redis的使用示例:
+##### RedisModel(model interface{}) *RedisDao // 传入一个model获取Dao实例
+	RedisModel(&TestModel{})
+##### Pool() *redis.Pool // 获取连接池对象,开发者可通过此返回值
+	RedisModel(&TestModel{}).Pool()
+##### Command(name string, args ...interface{}) *base.AnyValue // 执行redis命令,返回\*base.AnyValue,可进行类型转换. 参数name:命令名称 args:该命令对应的参数
+	RedisModel(&TestModel{}).Command("SET","username","admin")
+	RedisModel(&TestModel{}).Command("HSET","user","username","admin")
+	ret := RedisModel(&TestModel{}).Command("GET","username")
+	ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
+	ret.ToAffectedRows() // 返回受影响行数
+
+### Utils工具
+1. Curl功能
+2. File基本操作
+3. Convert数据类型转换
+4. ConfigParser配置解析器
+5. ...

@@ -164,7 +164,7 @@ func (av *AnyValue) ToStringMap() map[string]string {
 	return rValue
 }
 
-// 转换成 map[]string
+// 转换成 []map[string]string
 func (av *AnyValue) ToStringMapSlice() []map[string]string {
 	rValue := make([]map[string]string, 0)
 	switch av.getType() {
