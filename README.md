@@ -244,7 +244,6 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	备注: 部分值为 interface{} 的类型实现了 DataType 接口, 需要类型转换可通过Get方法获取到一个 *AnyValue
 
 ### <a id="数据库">数据库</a>
-
 #### 配置项 xxx/config/dev/database.ini
 	[plus_center] // 配置分组,必填
 	; 主库
@@ -257,7 +256,6 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	slave.dataSourceName = root:root@tcp(127.0.0.1:3306)/dbName?charset=utf8 // 连接参数
 	slave.maxIdleConn = 100
 	slave.maxOpenConn = 100
-
 #### Model的示例
 	package mysql
 
