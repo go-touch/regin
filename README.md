@@ -312,19 +312,19 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 
 #### db.Dao方法(举例均采用上述的第二种方式)
 
-##### Model(userModel interface{}) *Dao // 获取Dao数据对象
+##### func Model(userModel interface{}) *Dao // 获取Dao数据对象
 	db.Model(&Users{})
 	或
 	db.RegisterModel(&Users{}, "Users")
 	db.Model("Users")
-##### (d *Dao) Table(tableName string) *Dao // 设置表名(通常无需调用,注册model时已获取表名) 
+##### func (d *Dao) Table(tableName string) *Dao // 设置表名(通常无需调用,注册model时已获取表名) 
 	db.Model("Users").Table("message")
-##### (d *Dao) Field(field interface{}) *Dao // 设置表字段,参数 field可为string或[]string
+##### func (d *Dao) Field(field interface{}) *Dao // 设置表字段,参数 field可为string或[]string
 	db.Model("Users").Field("a,b,c,d")
 	db.Model("Users").Field([]string{"a,b,c,d"})
-##### Where(field interface{}, value interface{}, linkSymbol ...string) *Dao // 设置查询条件 参数field: 字段名 参数value: 字段值 参数linkSymbol: 连接符 and[or] 默认and
+##### func (d *Dao) Where(field interface{}, value interface{}, linkSymbol ...string) *Dao // 设置查询条件 参数field: 字段名 参数value: 字段值 参数linkSymbol: 连接符 and[or] 默认and
 	db.Model("Users").Where("id", 1)
-##### WhereMap(fieldMap map[string]interface{}, linkSymbol ...string) *Dao // 和where类型,参数是key-value的map
+##### func (d *Dao) WhereMap(fieldMap map[string]interface{}, linkSymbol ...string) *Dao // 和where类型,参数是key-value的map
 	db.Model("Users").WhereMap(map[string]interface{}{"id":1})
-##### Values(valueMap map[string]interface{}) *Dao // 绑定数据 insert[update]时使用到
+##### func (d *Dao) Values(valueMap map[string]interface{}) *Dao // 绑定数据 insert[update]时使用到
 	db.Model("Users").Values(map[string]interface{}{"username":"zhangsan"})
