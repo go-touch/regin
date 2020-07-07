@@ -312,19 +312,60 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 
 #### db.Dao方法(举例均采用上述的第二种方式)
 
-##### func Model(userModel interface{}) *Dao // 获取Dao数据对象
+##### Model(userModel interface{}) *Dao // 获取Dao数据对象
 	db.Model(&Users{})
 	或
 	db.RegisterModel(&Users{}, "Users")
 	db.Model("Users")
-##### func (d *Dao) Table(tableName string) *Dao // 设置表名(通常无需调用,注册model时已获取表名) 
+##### Table(tableName string) *Dao // 设置表名(通常无需调用,注册model时已获取表名) 
 	db.Model("Users").Table("message")
-##### func (d *Dao) Field(field interface{}) *Dao // 设置表字段,参数 field可为string或[]string
+##### Field(field interface{}) *Dao // 设置表字段,参数 field可为string或[]string
 	db.Model("Users").Field("a,b,c,d")
 	db.Model("Users").Field([]string{"a,b,c,d"})
-##### func (d *Dao) Where(field interface{}, value interface{}, linkSymbol ...string) *Dao // 设置查询条件 参数field: 字段名 参数value: 字段值 参数linkSymbol: 连接符 and[or] 默认and
+##### Where(field interface{}, value interface{}, linkSymbol ...string) *Dao // 设置查询条件 参数field: 字段名 参数value: 字段值 参数linkSymbol: 连接符 and[or] 默认and
 	db.Model("Users").Where("id", 1)
-##### func (d *Dao) WhereMap(fieldMap map[string]interface{}, linkSymbol ...string) *Dao // 和where类型,参数是key-value的map
+##### WhereMap(fieldMap map[string]interface{}, linkSymbol ...string) *Dao // 和where类似,参数是key-value的map
 	db.Model("Users").WhereMap(map[string]interface{}{"id":1})
-##### func (d *Dao) Values(valueMap map[string]interface{}) *Dao // 绑定数据 insert[update]时使用到
+##### Values(valueMap map[string]interface{}) *Dao // 绑定数据 insert[update]时使用到
 	db.Model("Users").Values(map[string]interface{}{"username":"zhangsan"})
+##### Order(expr ...string) *Dao // 设置排序 参数不定
+	db.Model("Users").Order("id ASC","username Desc")
+##### OrderSlice(expr []string) *Dao // 与Order类似 参数为[]string
+	db.Model("Users").OrderSlice([]string{"id ASC","username Desc"})
+##### Limit(limit ...int) *Dao // 参数不定,对应sql语句 limit m,n
+	db.Model("Users").Limit(1,10) 
+##### Sql() *Dao // 是否返回sql
+	ret := db.Model("Users").FetchRow(func(dao *db.Dao) {
+		dao.Sql()
+	})
+	fmt.Println(ret.ToString()) // 打印字符串sql语句
+##### FetchRow(userFunc ...UserFunc) *AnyValue // 查询一条记录,返回\*db.AnyValue,可实现数据转换
+	ret := db.Model("Users").FetchRow(func(dao *db.Dao) {
+		dao.Where("id", 1)
+	})
+	ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
+	ret.ToStringMap // 返回 map[string]string 结构的一条数据
+##### FetchAll(userFunc ...UserFunc) *AnyValue // 查询多条记录,返回*db.AnyValue,可实现数据转换
+	ret := db.Model("Users").FetchAll(func(dao *db.Dao) {
+		dao.Where("id", 1)
+	})
+	ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
+	ret.ToStringMap // 返回 map[string]string 结构的一条数据
+##### Insert(userFunc ...UserFunc) *AnyValue // 插入一条数据,返回\*db.AnyValue,可实现数据转换
+	ret := db.Model("Users").Insert(func(dao *db.Dao) {
+		dao.Values(map[string]interface{}{"username":"zhangsan"})
+	})
+	ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
+	ret.ToLastInsertId() // 返回最后插入的主键id
+##### Update(userFunc ...UserFunc) *AnyValue // 更新一条数据,返回\*db.AnyValue,可实现数据转换
+	ret := db.Model("Users").Update(func(dao *db.Dao) {
+		dao.Values(map[string]interface{}{"username":"zhangsan"})
+	})
+	ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
+	ret.ToAffectedRows() // 返回受影响行数
+##### DELETE(userFunc ...UserFunc) *AnyValue // 删除一条数据,返回\*db.AnyValue,可实现数据转换
+	ret := db.Model("Users").DELETE(func(dao *db.Dao) {
+		dao.Where("id", 1)
+	})
+	ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
+	ret.ToAffectedRows() // 返回受影响行数
