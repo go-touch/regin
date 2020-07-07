@@ -244,3 +244,77 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	备注: 部分值为 interface{} 的类型实现了 DataType 接口, 需要类型转换可通过Get方法获取到一个 *AnyValue
 
 ### 数据库
+
+####配置项 xxx/config/dev/database.ini
+	[plus_center] // 配置分组,必填
+	; 主库
+	master.driverName = mysql // 驱动名称
+	master.dataSourceName = root:root@tcp(127.0.0.1:3306)/dbName?charset=utf8 // 连接参数
+	master.maxIdleConn = 100 // 空闲连接数
+	master.maxOpenConn = 100 // 最大连接数
+	
+	; 从库
+	slave.driverName = mysql
+	slave.dataSourceName = root:root@tcp(127.0.0.1:3306)/dbName?charset=utf8
+	slave.maxIdleConn = 100
+	slave.maxOpenConn = 100
+
+#### Model的示例
+	package mysql
+
+	import (
+		"github.com/go-touch/regin/app/db"
+	)
+	
+	type Users struct{
+		Id       string `field:id`
+		Username string `field:"username"`
+	}
+	
+	// 注册model
+	func init() {
+		db.RegisterModel(&Users{}, "Users")
+	}
+	
+	// 数据库标识(此方法可重构,用于切换数据库,默认master)
+	func (this *Users) Identify() string {
+		return "plus_center.master"
+	}
+	
+	// 数据库表名(此方法可重构,用于切换数据表)
+	func (this *Users) TableName() string {
+		return "users"
+	}
+
+	// 自定义方法
+	func (this *Users) Method() string {
+		ret := db.Model("Users").FetchAll(func(dao *db.Dao) {
+			dao.Where("id", 202)
+		})
+	}
+> (this *Users) Identify() string 返回数据库连接参数,对应数据库配置的key链关系  
+> (this *Users) TableName() string 返回真实数据表名,如未设置则默认结构体名称(注: AdminUser 会转成 admin_user)
+
+#### 使用Model查询一条记录示例:
+	
+	第一种方式:
+	row := db.Model(&Users{}).FetchAll(func(dao *db.Dao) {
+		dao.Where("id", 1)
+	})
+
+	第二种方式:
+	db.RegisterModel(&Users{}, "Users") // 注册model, 第一个参数传入model实例化的指针, 第二个可选参数,用于起别名方便调用.
+	row := db.Model("Users").FetchAll(func(dao *db.Dao) {
+		dao.Where("id", 1)
+	})
+	
+	note: 推荐使用第二种方式,可以在初始化函数 init 批量注册model,这样在系统加载的时候回调用一次注入容器.
+
+#### db.Dao方法(举例均采用上述的第二种方式)
+> (d *Dao) Table(tableName string) *Dao // 设置表名(通常无需调用,注册model时已获取表名) 
+
+	db.Model("Users").Table("message")
+> (d *Dao) Field(field interface{}) *Dao // 设置表字段,参数 field可为string或[]string
+	
+	db.Model("Users").Field("a,b,c,d")
+	db.Model("Users").Field([]string{"a,b,c,d"})
