@@ -1,8 +1,9 @@
 # regin框架 #
 regin是一款基于go-gin框架封装的web框架,用于快速构建web应用和后端服务.
+[reginUrl]: https://github.com/go-touch/regin
 ### 目录
-- [安装与配置](https://github.com/go-touch/regin)  
-- 快速开始
+- [安装与配置][reginUrl]
+- [快速开始](#快速开始)
 - 项目结构
 - 路由配置
 - 服务配置
@@ -23,7 +24,7 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 ##### MacOS 或者 Linux 下开启 GO111MODULE 并设置 GOPROXY 的命令为：
 	$ export GO111MODULE = on
 	$ export GOPROXY = https://goproxy.cn
-### 快速开始
+### <a id="快速开始">快速开始</a>
 ####入口文件(xxx 代表项目名称,后面也是)
 	$ cat ./xxx/main.go
 
@@ -394,7 +395,7 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	ret.ToStringMapSlice()
 ##### 插入一条数据
 	// 链式操作
-	ret: db.Model("Users").Values(map[string]interface{}{"username":"zhangsan"}).Insert()
+	ret := db.Model("Users").Values(map[string]interface{}{"username":"zhangsan"}).Insert()
 
 	// 匿名函数回调操作
 	ret := db.Model("Users").Insert(func(dao *db.Dao) {
