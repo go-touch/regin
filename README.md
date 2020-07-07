@@ -311,10 +311,22 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	note: 推荐使用第二种方式,可以在初始化函数 init 批量注册model,这样在系统加载的时候回调用一次注入容器.
 
 #### db.Dao方法(举例均采用上述的第二种方式)
-> (d *Dao) Table(tableName string) *Dao // 设置表名(通常无需调用,注册model时已获取表名) 
+>Model(userModel interface{}) *Dao // 获取Dao数据对象 
+   
+	db.Model(&Users{})
+	或
+	db.RegisterModel(&Users{}, "Users")
+	db.Model("Users")
+>(d *Dao) Table(tableName string) *Dao // 设置表名(通常无需调用,注册model时已获取表名) 
 
 	db.Model("Users").Table("message")
-> (d *Dao) Field(field interface{}) *Dao // 设置表字段,参数 field可为string或[]string
+>(d *Dao) Field(field interface{}) *Dao // 设置表字段,参数 field可为string或[]string
 	
 	db.Model("Users").Field("a,b,c,d")
 	db.Model("Users").Field([]string{"a,b,c,d"})
+> Where(field interface{}, value interface{}, linkSymbol ...string) *Dao // 设置查询条件 参数field: 字段名 参数value: 字段值 参数linkSymbol: 连接符 and[or] 默认and
+
+	db.Model("Users").Where("id", 1)
+> WhereMap(fieldMap map[string]interface{}, linkSymbol ...string) *Dao // 和where类型,参数是key-value的map
+
+	db.Model("Users").WhereMap(map[string]interface{}{"id":1})
