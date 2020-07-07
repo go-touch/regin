@@ -33,7 +33,7 @@ func NewHttp() *Http {
 // Http server work method.
 func (h *Http) Work(request *base.Request) *base.Result {
 	// Get action.
-	actionKey := utils.StringJoinByDot(request.Param("module"), request.Param("action"))
+	actionKey := utils.StringJoinByDot(request.Param("module"), request.Param("controller"), request.Param("action"))
 	action, err := h.GetRouter().GetGeneral(actionKey)
 	if err != nil {
 		panic(err)

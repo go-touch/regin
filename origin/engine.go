@@ -23,7 +23,7 @@ func init() {
 
 // Run HttpServer
 func (ed *EngineDispatcher) HttpServer(server base.WebServer) {
-	ed.origin.Any("/:module/:action", func(c *gin.Context) {
+	ed.origin.Any("/:module/:controller/:action", func(c *gin.Context) {
 		// Error catch.
 		defer func() {
 			if err := server.GetError(); err != nil {

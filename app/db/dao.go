@@ -3,6 +3,8 @@ package db
 import (
 	"github.com/go-touch/regin/app/db/model"
 	"github.com/go-touch/regin/app/db/query"
+	"regexp"
+	"strings"
 )
 
 // 用户自定义函数
@@ -64,8 +66,18 @@ func (d *Dao) Field(field interface{}) *Dao {
 }
 
 // Where条件
-func (d *Dao) Where(field string, value interface{}, linkSymbol ...string) *Dao {
-	d.query.Where(field+" = ?", value, linkSymbol...)
+func (d *Dao) Where(field interface{}, value interface{}, linkSymbol ...string) *Dao {
+	expr := make([]string, 0)
+	if f, ok := field.(string); ok {
+		f = strings.TrimSpace(f)
+		f = regexp.MustCompile(`\s+`+"").ReplaceAllString(f, " ")
+		expr = append(expr, strings.Split(f, " ")...)
+		if regexp.MustCompile(`(=|!=|like|not like)`+"").FindString(f) == "" {
+			expr = append(expr, "=")
+		}
+		expr = append(expr, "?")
+	}
+	d.query.Where(strings.Join(expr, " "), value, linkSymbol...)
 	return d
 }
 
