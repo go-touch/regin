@@ -257,8 +257,9 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	slave.maxIdleConn = 100
 	slave.maxOpenConn = 100
 #### Model的示例
+```go
 	package mysql
-
+	
 	import (
 		"github.com/go-touch/regin/app/db"
 	)
@@ -282,13 +283,14 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	func (this *Users) TableName() string {
 		return "users"
 	}
-
+	
 	// 自定义方法
 	func (this *Users) Method() string {
 		ret := db.Model("Users").FetchAll(func(dao *db.Dao) {
 			dao.Where("id", 202)
 		})
 	}
+```
 > (this *Users) Identify() string 返回数据库连接参数,对应数据库配置的key链关系  
 > (this *Users) TableName() string 返回真实数据表名,如未设置则默认结构体名称(注: AdminUser 会转成 admin_user)
 
@@ -463,10 +465,3 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 3. Convert数据类型转换
 4. ConfigParser配置解析器
 5. ...
-
-```javascript
-var ihubo = {
-  nickName  : "草依山",
-  site : "http://jser.me"
-}
-```
