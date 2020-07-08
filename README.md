@@ -188,7 +188,7 @@ func (this *MysqlSelect) Exec(request *base.Request) *base.Result {
 	PostAll() (anyMap AnyMap, err error) 获取一个map[string]interface{}
 ##### 获取上传文件io句柄. 返回值为 []*multipart.FileHeader
 	PostFile(name string) []*multipart.FileHeader
-##### 更多方法使用 request
+##### 更多方法使用 request 调用
 	...
 #### *base.Result实例(用于响应客户端)
 ```go
@@ -235,10 +235,10 @@ type Result struct {
 	base.ResultInvoker.CreateHtml(status int, msg string) *Result
 ##### 快速获取一个可响应json的  *base.Result 实例
 	base.JsonResult() *Result
-##### 改业务数据即 *base.Result 的 Data 字段
+##### 修改业务数据即 *base.Result 的 Data 字段
 	(r *Result) SetData(key string, value interface{})
 ##### 获取业务数据即 *base.Result 的 Data 字段
-
+	(r *Result) GetData(key string) interface{} 
 #### *AnyValue值类型（用于数据转换,对于不确定类型interfa{}比较适用,包名base)
 ##### 获取 *base.AnyValue. 参数value:interface{}(可传任意值)
 	base.Eval(value interface{}) *AnyValue
@@ -257,7 +257,7 @@ type Result struct {
 ##### 转成map[string]string类型
 	(av *AnyValue) ToStringMap() map[string]string
 ##### 更多方法使用 *base.AnyValue 调用
-
+	...
 #### regin定义的数据类型 (业务中可直接使用,包名base)
 ```go
 // 预定义常见数据类型
@@ -274,8 +274,7 @@ type AnySlice []interface{}               // [SliceType] key is index,value为�
 type StringMapSlice []map[string]string   // [SliceType] key is index,value为(key为string,value为string)的map
 type AnyMapSlice []map[string]interface{} // [SliceType] key is index,value为(key为string,value为任意类型)的map
 ```
-```备注: 部分值为 interface{} 的类型实现了 DataType 接口, 需要类型转换可通过Get方法获取到一个 *AnyValue```
-
+```备注: 部分值为 interface{} 的类型实现了 DataType 接口, 需要类型转换可通过Get方法获取到一个 *base.AnyValue```
 
 ### <a id="数据库">数据库</a>
 #### 配置项 xxx/config/dev/database.ini
@@ -325,140 +324,228 @@ func (this *Users) Method() string {
 	})
 }
 ```
-> (this *Users) Identify() string 返回数据库连接参数,对应数据库配置的key链关系  
-> (this *Users) TableName() string 返回真实数据表名,如未设置则默认结构体名称(注: AdminUser 会转成 admin_user)
+##### 设置数据库连接标识,对应数据库配置的key链关系
+	(this *Users) Identify() string
+##### 设置真实数据表名,如未设置则默认结构体名称(注: AdminUser 会转成 admin_user)
+	(this *Users) TableName() string
 
 #### 使用Model查询一条记录示例:
-	
-	第一种方式:
-	row := db.Model(&Users{}).FetchAll(func(dao *db.Dao) {
-		dao.Where("id", 1)
-	})
+```go
+第一种方式:
+row := db.Model(&Users{}).FetchRow(func(dao *db.Dao) {
+	dao.Where("id", 1)
+})
 
-	第二种方式:
-	db.RegisterModel(&Users{}, "Users") // 注册model, 第一个参数传入model实例化的指针, 第二个可选参数,用于起别名方便调用.
-	row := db.Model("Users").FetchAll(func(dao *db.Dao) {
-		dao.Where("id", 1)
-	})
-	
-	note: 推荐使用第二种方式,可以在初始化函数 init 批量注册model,这样在系统加载的时候回调用一次注入容器.
+第二种方式:
+// 注册 Model, 第一个参数传入model实例化的指针, 第二个可选参数,用于起别名方便调用,不传名称默认为 mysql.Users .
+db.RegisterModel(&Users{}, "Users")
 
+// 使用别名获取 Dao 数据对象并使用 FetchRow 方法查询
+row := db.Model("Users").FetchRow(func(dao *db.Dao) {
+	dao.Where("id", 1)
+})
+```
+	Node: 推荐使用第二种方式,可以在初始化函数 init 批量注册model,这样在系统加载的时候回调用一次注入容器
 #### db.Dao方法(举例均采用上述的第二种方式)
+##### 获取Dao数据对象
+```go
+db.Model(userModel interface{})
 
-##### <font color=#0099ff>获取Dao数据对象</font>
-##### Model(userModel interface{}) *Dao // 获取Dao数据对象
-	db.Model(&Users{})
-	或
-	db.RegisterModel(&Users{}, "Users")
-	db.Model("Users")
-##### Table(tableName string) *Dao // 设置表名(通常无需调用,注册model时已获取表名) 
-	db.Model("Users").Table("message")
-##### Field(field interface{}) *Dao // 设置表字段,参数 field可为string或[]string
-	db.Model("Users").Field("a,b,c,d")
-	db.Model("Users").Field([]string{"a,b,c,d"})
-##### Where(field interface{}, value interface{}, linkSymbol ...string) *Dao // 设置查询条件 参数field: 字段名 参数value: 字段值 参数linkSymbol: 连接符 and[or] 默认and
-	db.Model("Users").Where("id", 1)
-##### WhereMap(fieldMap map[string]interface{}, linkSymbol ...string) *Dao // 和where类似,参数是key-value的map
-	db.Model("Users").WhereMap(map[string]interface{}{"id":1})
-##### Values(valueMap map[string]interface{}) *Dao // 绑定数据 insert[update]时使用到
-	db.Model("Users").Values(map[string]interface{}{"username":"zhangsan"})
-##### Order(expr ...string) *Dao // 设置排序 参数不定
-	db.Model("Users").Order("id ASC","username Desc")
-##### OrderSlice(expr []string) *Dao // 与Order类似 参数为[]string
-	db.Model("Users").OrderSlice([]string{"id ASC","username Desc"})
-##### Limit(limit ...int) *Dao // 参数不定,对应sql语句 limit m,n
-	db.Model("Users").Limit(1,10) 
-##### Sql() *Dao // 是否返回sql
-	ret := db.Model("Users").FetchRow(func(dao *db.Dao) {
-		dao.Sql()
-	})
-	fmt.Println(ret.ToString()) // 打印字符串sql语句
-##### FetchRow(userFunc ...UserFunc) *AnyValue // 查询一条记录,返回\*db.AnyValue,可实现数据转换.参数userFunc:用户回调函数,接收Dao
-	ret := db.Model("Users").FetchRow(func(dao *db.Dao) {
-		dao.Where("id", 1)
-	})
-	ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
-	ret.ToStringMap // 返回 map[string]string 结构的一条数据
-##### FetchAll(userFunc ...UserFunc) *AnyValue // 查询多条记录,返回*db.AnyValue,可实现数据转换
-	ret := db.Model("Users").FetchAll(func(dao *db.Dao) {
-		dao.Where("id", 1)
-	})
-	ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
-	ret.ToStringMap // 返回 map[string]string 结构的一条数据
-##### Insert(userFunc ...UserFunc) *AnyValue // 插入一条数据,返回\*db.AnyValue,可实现数据转换
-	ret := db.Model("Users").Insert(func(dao *db.Dao) {
-		dao.Values(map[string]interface{}{"username":"zhangsan"})
-	})
-	ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
-	ret.ToLastInsertId() // 返回最后插入的主键id
-##### Update(userFunc ...UserFunc) *AnyValue // 更新一条数据,返回\*db.AnyValue,可实现数据转换
-	ret := db.Model("Users").Update(func(dao *db.Dao) {
-		dao.Values(map[string]interface{}{"username":"zhangsan"})
-	})
-	ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
-	ret.ToAffectedRows() // 返回受影响行数
-##### DELETE(userFunc ...UserFunc) *AnyValue // 删除一条数据,返回\*db.AnyValue,可实现数据转换
-	ret := db.Model("Users").DELETE(func(dao *db.Dao) {
-		dao.Where("id", 1)
-	})
-	ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
-	ret.ToAffectedRows() // 返回受影响行数
+调用示例:
+dao := db.Model(&Users{})
+或
+db.RegisterModel(&Users{}, "Users")
+dao := db.Model("Users")
+```
+##### 设置表名(通常无需调用,注册model时已获取表名)
+```go
+(d *Dao) Table(tableName string) *Dao
+
+示例:
+db.Model("Users").Table("message")
+```
+##### 设置表字段,参数 field可为string或[]string
+```go
+(d *Dao) Field(field interface{}) *Dao
+
+示例:
+db.Model("Users").Field("a,b,c,d")
+db.Model("Users").Field([]string{"a,b,c,d"})
+```
+##### 设置查询条件 参数field: 字段名 参数value: 字段值 参数linkSymbol: 连接符 and[or] 默认and
+```go
+(d *Dao) Where(field interface{}, value interface{}, linkSymbol ...string) *Dao
+
+示例:
+db.Model("Users").Where("id", 1)
+```
+##### 批量设置查询条件,和where类似. 参数是key-value的map
+```go
+(d *Dao) WhereMap(fieldMap map[string]interface{}, linkSymbol ...string) *Dao
+
+示例:
+db.Model("Users").WhereMap(map[string]interface{}{"id":1})
+```
+##### 绑定数据,insert[update]时使用到.
+```go
+(d *Dao) Values(valueMap map[string]interface{}) *Dao
+
+示例:
+db.Model("Users").Values(map[string]interface{}{"username":"zhangsan"})
+```
+##### 设置排序.参数不定
+```go
+(d *Dao) Order(expr ...string) *Dao 
+
+示例:
+db.Model("Users").Order("id ASC","username Desc")
+```
+##### 批量设置排序. 与Order类似,参数为[]string
+```go
+(d *Dao) OrderSlice(expr []string) *Dao
+
+示例:
+db.Model("Users").OrderSlice([]string{"id ASC","username Desc"})
+```
+##### 设置查询检索记录行. 参数不定,对应sql语句 limit m,n
+```go
+(d *Dao) Limit(limit ...int) *Dao
+
+示例:
+db.Model("Users").Limit(1,10)
+```
+##### 是否返回sql. 需要在执行增删改查方法前调用
+```go
+(d *Dao) Sql() *Dao
+
+示例:
+ret := db.Model("Users").FetchRow(func(dao *db.Dao) {
+	dao.Sql()
+})
+fmt.Println(ret.ToString()) // 打印字符串sql语句
+```
+##### 查询一条记录,返回 \*db.AnyValue,可实现数据转换.参数userFunc:用户回调函数,接收参数为 \*db.Dao
+```go
+(d *Dao) FetchRow(userFunc ...UserFunc) *AnyValue
+
+示例:
+ret := db.Model("Users").FetchRow(func(dao *db.Dao) {
+	dao.Where("id", 1)
+})
+ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
+ret.ToStringMap // 返回 map[string]string 结构的一条数据
+```
+##### 查询多条记录,返回 \*db.AnyValue,可实现数据转换. 参数userFunc:用户回调函数,接收参数为 \*db.Dao
+```go
+(d *Dao) FetchAll(userFunc ...UserFunc) *AnyValue
+
+示例:
+ret := db.Model("Users").FetchAll(func(dao *db.Dao) {
+	dao.Where("id", 1)
+})
+ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
+ret.ToStringMap // 返回 map[string]string 结构的一条数据
+```
+##### 插入一条记录,返回 \*db.AnyValue,可实现数据转换. 参数userFunc:用户回调函数,接收参数为 \*db.Dao
+```go
+(d *Dao) Insert(userFunc ...UserFunc) *AnyValue
+
+示例:
+ret := db.Model("Users").Insert(func(dao *db.Dao) {
+	dao.Values(map[string]interface{}{"username":"zhangsan"})
+})
+ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
+ret.ToLastInsertId() // 返回最后插入的主键id
+```
+
+
+
+##### 更新一条记录,返回 \*db.AnyValue,可实现数据转换. 参数userFunc:用户回调函数,接收参数为 \*db.Dao
+```go
+(d *Dao) Update(userFunc ...UserFunc) *AnyValue
+
+示例:
+ret := db.Model("Users").Update(func(dao *db.Dao) {
+	dao.Values(map[string]interface{}{"username":"zhangsan"})
+})
+ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
+ret.ToAffectedRows() // 返回受影响行数
+```
+#####  删除一条数据,返回 \*db.AnyValue,可实现数据转换. 参数userFunc:用户回调函数,接收参数为 \*db.Dao
+```go
+(d *Dao) DELETE(userFunc ...UserFunc) *AnyValue
+
+示例:
+ret := db.Model("Users").DELETE(func(dao *db.Dao) {
+	dao.Where("id", 1)
+})
+ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
+ret.ToAffectedRows() // 返回受影响行数
+```
 #### 完整数据库操作实例(假设model已注册)
 ##### 查询一条数据
-	// 链式操作
-	ret := db.Model("Users").Field("username").Where("id", 1).FetchRow()
+```go
+// 链式操作
+ret := db.Model("Users").Field("username").Where("id", 1).FetchRow()
 
-	// 匿名函数回调操作
-	ret := db.Model("Users").FetchRow(func(dao *db.Dao) {
-		dao.Field("username")
-		dao.Where("id", 1)
-	})
-	ret.ToError()
-	ret.ToStringMap()
+// 匿名函数回调操作
+ret := db.Model("Users").FetchRow(func(dao *db.Dao) {
+	dao.Field("username")
+	dao.Where("id", 1)
+})
+ret.ToError()
+ret.ToStringMap()
+```
 ##### 查询多条数据
-	// 链式操作
-	ret := db.Model("Users").Field("username").Where("id", 1).FetchAll()
+```go
+// 链式操作
+ret := db.Model("Users").Field("username").Where("id", 1).FetchAll()
 
-	// 匿名函数回调操作
-	ret := db.Model("Users").FetchAll(func(dao *db.Dao) {
-		dao.Field("username")
-		dao.Where("id", 1)
-	})
-	ret.ToError()
-	ret.ToStringMapSlice()
+// 匿名函数回调操作
+ret := db.Model("Users").FetchAll(func(dao *db.Dao) {
+	dao.Field("username")
+	dao.Where("id", 1)
+})
+ret.ToError()
+ret.ToStringMapSlice()
+```
 ##### 插入一条数据
-	// 链式操作
-	ret := db.Model("Users").Values(map[string]interface{}{"username":"zhangsan"}).Insert()
+```go
+// 链式操作
+ret := db.Model("Users").Values(map[string]interface{}{"username":"zhangsan"}).Insert()
 
-	// 匿名函数回调操作
-	ret := db.Model("Users").Insert(func(dao *db.Dao) {
-		dao.Values(map[string]interface{}{"username":"zhangsan"})
-	})
-	ret.ToError()
-	ret.ToLastInsertId()
-
+// 匿名函数回调操作
+ret := db.Model("Users").Insert(func(dao *db.Dao) {
+	dao.Values(map[string]interface{}{"username":"zhangsan"})
+})
+ret.ToError()
+ret.ToLastInsertId()
+```
 ##### 更新一条数据
-	// 链式操作
-	ret := db.Model("Users").Values(map[string]interface{}{"username":"zhangsan"}).Where("id", 1).Update()
+```go
+// 链式操作
+ret := db.Model("Users").Values(map[string]interface{}{"username":"zhangsan"}).Where("id", 1).Update()
 
-	// 匿名函数回调操作
-	ret := db.Model("Users").Update(func(dao *db.Dao) {
-		dao.Values(map[string]interface{}{"username":"zhangsan"})
-		dao.Where("id", 1)
-	})
-	ret.ToError()
-	ret.ToAffectedRows()
+// 匿名函数回调操作
+ret := db.Model("Users").Update(func(dao *db.Dao) {
+	dao.Values(map[string]interface{}{"username":"zhangsan"})
+	dao.Where("id", 1)
+})
+ret.ToError()
+ret.ToAffectedRows()
+```
 ##### 删除一条数据
-	// 链式操作
-	ret := db.Model("Users").Where("id", 1).DELETE()
+```go
+// 链式操作
+ret := db.Model("Users").Where("id", 1).DELETE()
 
-	// 匿名函数回调操作
-	ret := db.Model("Users").DELETE(func(dao *db.Dao) {
-		dao.Where("id", 1)
-	})
-	ret.ToError()
-	ret.ToAffectedRows()
-
+// 匿名函数回调操作
+ret := db.Model("Users").DELETE(func(dao *db.Dao) {
+	dao.Where("id", 1)
+})
+ret.ToError()
+ret.ToAffectedRows()
+```
 ### <a id="Redis">Redis</a>
 
 #### 配置项 xxx/config/dev/redis.ini
@@ -471,28 +558,45 @@ func (this *Users) Method() string {
 	master.IdleTimeout = 120 // 超时时间
 
 #### RedisModel的示例
+```go
 	package redis
 
 	type TestModel struct {}
-	
+
 	// Redis库标识
 	func (b *Base) Identify() string {
 		return "plus_center.master"
 	}
-> (this *Users) Identify() string 返回redis连接参数,对应数据库配置的key链关系
-
+```
+```go
+(this *Users) Identify() string // 设置redis连接参数,对应Redis配置的key链关系
+```
 #### Redis的使用示例:
-##### RedisModel(model interface{}) *RedisDao // 传入一个model获取Dao实例
-	RedisModel(&TestModel{})
-##### Pool() *redis.Pool // 获取连接池对象,开发者可通过此返回值
-	RedisModel(&TestModel{}).Pool()
-##### Command(name string, args ...interface{}) *base.AnyValue // 执行redis命令,返回\*base.AnyValue,可进行类型转换. 参数name:命令名称 args:该命令对应的参数
-	RedisModel(&TestModel{}).Command("SET","username","admin")
-	RedisModel(&TestModel{}).Command("HSET","user","username","admin")
-	ret := RedisModel(&TestModel{}).Command("GET","username")
-	ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
-	ret.ToAffectedRows() // 返回受影响行数
+##### 传入一个model获取 Redis Dao 实例
+```go
+RedisModel(model interface{}) *RedisDao
 
+示例:
+redisDao := RedisModel(&TestModel{})
+```
+##### 获取连接池对象,开发者可通过此返回值
+```go
+(rd *RedisDao) Pool() *redis.Pool
+
+示例:
+pool := RedisModel(&TestModel{}).Pool()
+```
+#####  // 执行redis命令,返回\*base.AnyValue,可进行类型转换. 参数name:命令名称 args:该命令对应的参数
+```go
+(rd *RedisDao) Command(name string, args ...interface{}) *base.AnyValue
+
+示例:
+RedisModel(&TestModel{}).Command("SET","username","admin")
+RedisModel(&TestModel{}).Command("HSET","user","username","admin")
+ret := RedisModel(&TestModel{}).Command("GET","username")
+ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
+ret.ToAffectedRows() // 返回受影响行数
+```
 ### <a id="Utils工具">Utils工具</a>
 1. Curl功能
 2. File基本操作
