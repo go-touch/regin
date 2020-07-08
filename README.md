@@ -182,21 +182,14 @@ func (this *MysqlSelect) Exec(request *base.Request) *base.Result {
 	Param(key string, defaultValue ...string)
 ##### 获取pathinfo的路径map信息. 返回值为 base.StringMap(对应基础类型map[string]string)
 	ParamAll() StringMap
-###### 获取Post数据, json、xml数据也用此方法.
+##### 获取Post数据, json、xml数据也用此方法.返回值为 interface{}
 	Post(key string, defaultValue ...interface{}) (value interface{}, err error)
-##### 获取Post数据的map, json、xml数据也用此方法
+##### 获取Post数据的map, json、xml数据也用此方法. 返回值为 base.AnyMap(对应基础类型map[string]interface{})
 	PostAll() (anyMap AnyMap, err error) 获取一个map[string]interface{}
-	
-
-> GetMethod() string 获取请求方式
-> GetError() error 获取error信息
-> Param(key string, defaultValue ...string) 获取pathinfo的路径信息
-> ParamAll() StringMap // 获取一个map[string]string, 类型属于regin的StringMap
-> Post(key string, defaultValue ...interface{}) (value interface{}, err error)
-> PostAll() (anyMap AnyMap, err error) 获取一个map[string]interface{}, 类型属于regin的AnyMap
-> PostFile(name string) []*multipart.FileHeader 用于获取文件io句柄
-> ...
-
+##### 获取上传文件io句柄. 返回值为 []*multipart.FileHeader
+	PostFile(name string) []*multipart.FileHeader
+##### 更多方法使用 request
+	...
 #### *base.Result实例(用于响应客户端)
 ```go
 type Result struct {
@@ -236,25 +229,34 @@ type Result struct {
 		}
 	}
 ```
-##### ResultInvoker为预定义的 *base.Result 实例
-	result := ResultInvoker.CreateJson()
-
-> ResultInvoker.CreateJson() // ResultInvoker为预定义的 *base.Result 实例
-> (r *Result) CreateJson(status int, msg string) *Result // 创建一个可返回json数据的\*base.Result   
-> (r *Result) CreateHtml(page string, status int, msg string) *Result // 创建一个可返回html数据的\*base.Result  
-> (r *Result) SetData(key string, value interface{}) // 修改业务数据即 \*base.Result 的 Data 字段   
-> (r *Result) GetData(key string) interface{} // 获取业务数据即 \*base.Result 的 Data 字段   
+##### 获取一个可响应json的 *base.Result 实例
+	base.ResultInvoker.CreateJson(status int, msg string) *Result
+##### 获取一个可响应html的 *base.Result 实例
+	base.ResultInvoker.CreateHtml(status int, msg string) *Result
+##### 快速获取一个可响应json的  *base.Result 实例
+	base.JsonResult() *Result
+##### 改业务数据即 *base.Result 的 Data 字段
+	(r *Result) SetData(key string, value interface{})
+##### 获取业务数据即 *base.Result 的 Data 字段
 
 #### *AnyValue值类型（用于数据转换,对于不确定类型interfa{}比较适用,包名base)
-> Eval(value interface{}) *AnyValue 通过调用此方法获取 *AnyValue
-> (av *AnyValue) ToError() error 返回错误信息
-> (av *AnyValue) ToValue() interface{} 返回原值
-> (av *AnyValue) ToInt() int 转成int类型
-> (av *AnyValue) ToByte() byte 转成byte类型
-> (av *AnyValue) ToString() string 转成string类型
-> (av *AnyValue) ToBool() bool 转成bool类型
-> (av *AnyValue) ToStringMap() map[string]string 转成map[string]string类型
-> ...
+##### 获取 *base.AnyValue. 参数value:interface{}(可传任意值)
+	base.Eval(value interface{}) *AnyValue
+##### 返回错误信息
+	(av *AnyValue) ToError() error
+##### 返回原值
+	(av *AnyValue) ToValue() interface{}
+##### 转成int类型
+	(av *AnyValue) ToInt() int
+##### 转成byte类型
+	(av *AnyValue) ToByte() byte
+##### 转成string类型
+	ToString() string
+##### 转成bool类型
+	(av *AnyValue) ToBool() bool
+##### 转成map[string]string类型
+	(av *AnyValue) ToStringMap() map[string]string
+##### 更多方法使用 *base.AnyValue 调用
 
 #### regin定义的数据类型 (业务中可直接使用,包名base)
 ```go
