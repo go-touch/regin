@@ -193,41 +193,41 @@ func (this *MysqlSelect) Exec(request *base.Request) *base.Result {
 #### *base.Result实例(用于响应客户端)
 ```go
 type Result struct {
-		Type   string // 可选值为:String、Json、Html、
-		Page   string // 响应页面(Type = Html时必填)
-		Status int    // 状态码 200正常状态
-		Msg    string // 提示消息
-		Data   AnyMap // 业务数据
-	}
+	Type   string // 可选值为:String、Json、Html、
+	Page   string // 响应页面(Type = Html时必填)
+	Status int    // 状态码 200正常状态
+	Msg    string // 提示消息
+	Data   AnyMap // 业务数据
+}
 
-	// 定义RespResult
-	var ResultInvoker *Result
+// 定义RespResult
+var ResultInvoker *Result
 
-	func init() {
-		ResultInvoker = &Result{}
-	}
+func init() {
+	ResultInvoker = &Result{}
+}
 
-	// 创建Json result
-	func (r *Result) CreateJson(status int, msg string) *Result {
-		return &Result{
-			Type:   "Json",
-			Page:   "",
-			Status: status,
-			Msg:    msg,
-			Data:   AnyMap{"code": 0, "msg": "", "data": ""},
-		}
+// 创建Json result
+func (r *Result) CreateJson(status int, msg string) *Result {
+	return &Result{
+		Type:   "Json",
+		Page:   "",
+		Status: status,
+		Msg:    msg,
+		Data:   AnyMap{"code": 0, "msg": "", "data": ""},
 	}
+}
 
-	// 创建Html result
-	func (r *Result) CreateHtml(page string, status int, msg string) *Result {
-		return &Result{
-			Type:   "Html",
-			Page:   page,
-			Status: status,
-			Msg:    msg,
-			Data:   AnyMap{},
-		}
+// 创建Html result
+func (r *Result) CreateHtml(page string, status int, msg string) *Result {
+	return &Result{
+		Type:   "Html",
+		Page:   page,
+		Status: status,
+		Msg:    msg,
+		Data:   AnyMap{},
 	}
+}
 ```
 ##### 获取一个可响应json的 *base.Result 实例
 	base.ResultInvoker.CreateJson(status int, msg string) *Result
