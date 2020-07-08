@@ -324,11 +324,12 @@ func (this *Users) Method() string {
 	})
 }
 ```
-##### 设置数据库连接标识,对应数据库配置的key链关系
-	(this *Users) Identify() string
-##### 设置真实数据表名,如未设置则默认结构体名称(注: AdminUser 会转成 admin_user)
-	(this *Users) TableName() string
-
+```go
+(this *Users) Identify() string //设置数据库连接标识,对应数据库配置的key链关系
+```
+```go
+(this *Users) TableName() string // 设置真实数据表名,如未设置则默认结构体名称(注: AdminUser 会转成 admin_user)
+```
 #### 使用Model查询一条记录示例:
 ```go
 第一种方式:
@@ -347,7 +348,7 @@ row := db.Model("Users").FetchRow(func(dao *db.Dao) {
 ```
 	Node: 推荐使用第二种方式,可以在初始化函数 init 批量注册model,这样在系统加载的时候回调用一次注入容器
 #### db.Dao方法(举例均采用上述的第二种方式)
-##### 获取Dao数据对象
+##### 获取Dao数据对象.
 ```go
 db.Model(userModel interface{})
 
@@ -357,14 +358,14 @@ dao := db.Model(&Users{})
 db.RegisterModel(&Users{}, "Users")
 dao := db.Model("Users")
 ```
-##### 设置表名(通常无需调用,注册model时已获取表名)
+##### 设置表名.(通常无需调用,注册model时已获取表名)
 ```go
 (d *Dao) Table(tableName string) *Dao
 
 示例:
 db.Model("Users").Table("message")
 ```
-##### 设置表字段,参数 field可为string或[]string
+##### 设置表字段.参数field: 可为string或[]string
 ```go
 (d *Dao) Field(field interface{}) *Dao
 
@@ -372,14 +373,14 @@ db.Model("Users").Table("message")
 db.Model("Users").Field("a,b,c,d")
 db.Model("Users").Field([]string{"a,b,c,d"})
 ```
-##### 设置查询条件 参数field: 字段名 参数value: 字段值 参数linkSymbol: 连接符 and[or] 默认and
+##### 设置查询条件. 参数field:字段名,参数value:字段值,参数linkSymbol:连接符(and[or] 默认and)
 ```go
 (d *Dao) Where(field interface{}, value interface{}, linkSymbol ...string) *Dao
 
 示例:
 db.Model("Users").Where("id", 1)
 ```
-##### 批量设置查询条件,和where类似. 参数是key-value的map
+##### 批量设置查询条件,和where类似. 参数是 key-value 的 map
 ```go
 (d *Dao) WhereMap(fieldMap map[string]interface{}, linkSymbol ...string) *Dao
 
@@ -393,9 +394,9 @@ db.Model("Users").WhereMap(map[string]interface{}{"id":1})
 示例:
 db.Model("Users").Values(map[string]interface{}{"username":"zhangsan"})
 ```
-##### 设置排序.参数不定
+##### 设置排序. 参数不定
 ```go
-(d *Dao) Order(expr ...string) *Dao 
+(d *Dao) Order(expr ...string) *Dao
 
 示例:
 db.Model("Users").Order("id ASC","username Desc")
@@ -457,9 +458,6 @@ ret := db.Model("Users").Insert(func(dao *db.Dao) {
 ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
 ret.ToLastInsertId() // 返回最后插入的主键id
 ```
-
-
-
 ##### 更新一条记录,返回 \*db.AnyValue,可实现数据转换. 参数userFunc:用户回调函数,接收参数为 \*db.Dao
 ```go
 (d *Dao) Update(userFunc ...UserFunc) *AnyValue
@@ -559,14 +557,14 @@ ret.ToAffectedRows()
 
 #### RedisModel的示例
 ```go
-	package redis
+package redis
 
-	type TestModel struct {}
+type TestModel struct {}
 
-	// Redis库标识
-	func (b *Base) Identify() string {
-		return "plus_center.master"
-	}
+// Redis库标识
+func (b *Base) Identify() string {
+	return "plus_center.master"
+}
 ```
 ```go
 (this *Users) Identify() string // 设置redis连接参数,对应Redis配置的key链关系
