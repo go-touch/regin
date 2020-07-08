@@ -210,10 +210,10 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 		}
 	}
 > ResultInvoker.CreateJson() // ResultInvoker为预定义的 *base.Result 实例  
-> (r *Result) CreateJson(status int, msg string) *Result // 创建一个可返回json数据的 *Result   
-> (r *Result) CreateHtml(page string, status int, msg string) *Result // 创建一个可返回html数据的 *Result  
-> (r *Result) SetData(key string, value interface{}) // 修改业务数据即 *base.Result 的 Data 字段   
-> (r *Result) GetData(key string) interface{} // 获取业务数据即 *base.Result 的 Data 字段   
+> (r *Result) CreateJson(status int, msg string) *Result // 创建一个可返回json数据的\*base.Result   
+> (r *Result) CreateHtml(page string, status int, msg string) *Result // 创建一个可返回html数据的\*base.Result  
+> (r *Result) SetData(key string, value interface{}) // 修改业务数据即 \*base.Result 的 Data 字段   
+> (r *Result) GetData(key string) interface{} // 获取业务数据即 \*base.Result 的 Data 字段   
 
 #### *AnyValue值类型（用于数据转换,对于不确定类型interfa{}比较适用,包名base)
 > Eval(value interface{}) *AnyValue 通过调用此方法获取 *AnyValue  
@@ -234,7 +234,7 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	}
 	type AnyMap map[string]interface{}        // [MapType] key is string,value is 任意类型
 	type StringMap map[string]string          // [MapType] key is string,value is string 类型
-	type IntMap map[string]int                // [MapType] key is string,value is int t类型
+	type IntMap map[string]int                // [MapType] key is string,value is int 类型
 	type StringSliceMap map[string][]string   // [MapType] key is string,value is string Slice 类型
 	type GeneralMap map[string]AppAction      // [MapType] key is string,value is AppAction t类型
 	type AnySlice []interface{}               // [SliceType] key is index,value为任意类型
@@ -253,7 +253,7 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	master.maxOpenConn = 100 // 最大连接数
 	; 从库
 	slave.driverName = mysql
-	slave.dataSourceName = root:root@tcp(127.0.0.1:3306)/dbName?charset=utf8 // 连接参数
+	slave.dataSourceName = root:root@tcp(127.0.0.1:3306)/dbName?charset=utf8
 	slave.maxIdleConn = 100
 	slave.maxOpenConn = 100
 #### Model的示例
