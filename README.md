@@ -174,17 +174,17 @@ func (this *MysqlSelect) Exec(request *base.Request) *base.Result {
 }
 ```
 #### *base.Request实例(封装param、get、post方法,自动json、xml解析)
-###### 获取请求方式
+##### 获取请求方式
 	GetMethod() string
-###### 获取error信息
+##### 获取error信息
 	GetError() error
-###### 获取pathinfo的路径信息. 参数key:路径名 defaultValue:默认值
+##### 获取pathinfo的路径信息. 参数key:路径名 defaultValue:默认值
 	Param(key string, defaultValue ...string)
-###### 获取pathinfo的路径map信息. 返回值为 base.StringMap(对应基础类型map[string]string)
+##### 获取pathinfo的路径map信息. 返回值为 base.StringMap(对应基础类型map[string]string)
 	ParamAll() StringMap
-###### 获取Post数据, json、xml数据也用此方法.
+##### 获取Post数据, json、xml数据也用此方法.
 	Post(key string, defaultValue ...interface{}) (value interface{}, err error)
-###### 获取Post数据的map, json、xml数据也用此方法
+##### 获取Post数据的map, json、xml数据也用此方法
 	PostAll() (anyMap AnyMap, err error) 获取一个map[string]interface{}
 	
 
