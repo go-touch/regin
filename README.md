@@ -14,7 +14,7 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 ### <a id="安装与配置">安装与配置</a>
 #### 1. 安装Go (version 1.10+), 然后可使用下面命令进行安装regin
 	$ go get github.com/go-touch/regin
-#### 2. 设置环境变量
+#### 2. 设置系统环境变量
 	REGIN_RUNMODE = dev | test | prod
 #### 3. 依赖包安装(已安装可忽略)
 	$ go get github.com/gin-gonic/gin
@@ -24,11 +24,11 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	$ go get gopkg.in/ini.v1
 #### 4. 如使用go mod包依赖管理工具, 请参考下面命令
 ##### Windows 下开启 GO111MODULE 并设置 GOPROXY 的命令为：
-	$ set GO111MODULE = on
-	$ go env -w GOPROXY = https://goproxy.cn,direct
+	$ set GO111MODULE=on
+	$ go env -w GOPROXY=https://goproxy.cn,direct
 ##### MacOS 或者 Linux 下开启 GO111MODULE 并设置 GOPROXY 的命令为：
-	$ export GO111MODULE = on
-	$ export GOPROXY = https://goproxy.cn
+	$ export GO111MODULE=on
+	$ export GOPROXY=https://goproxy.cn
 ### <a id="快速开始">快速开始</a>
 #### 入口文件: xxx/main.go (xxx 代表项目名称,后面也是)
 ```go
@@ -50,7 +50,7 @@ func main() {
 ### <a id="项目结构">项目结构</a>
 - application
 	- modules // action存放目录,
-        - demo // 模块名
+    	- demo // 模块名
     - model
         - bussiness // 业务类
         - common // 公共处理函数
