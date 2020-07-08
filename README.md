@@ -251,7 +251,7 @@ func (r *Result) CreateHtml(page string, status int, msg string) *Result {
 ##### 转成byte类型
 	(av *AnyValue) ToByte() byte
 ##### 转成string类型
-	ToString() string
+	(av *AnyValue) ToString() string
 ##### 转成bool类型
 	(av *AnyValue) ToBool() bool
 ##### 转成map[string]string类型
@@ -274,8 +274,9 @@ type AnySlice []interface{}               // [SliceType] key is index,value为�
 type StringMapSlice []map[string]string   // [SliceType] key is index,value为(key为string,value为string)的map
 type AnyMapSlice []map[string]interface{} // [SliceType] key is index,value为(key为string,value为任意类型)的map
 ```
-```备注: 部分值为 interface{} 的类型实现了 DataType 接口, 需要类型转换可通过Get方法获取到一个 *base.AnyValue```
-
+```go
+Note: 部分值为 interface{} 的类型实现了 DataType 接口, 需要类型转换可通过Get方法获取到一个 *base.AnyValue
+```
 ### <a id="数据库">数据库</a>
 #### 配置项 xxx/config/dev/database.ini
 	[plus_center] // 配置分组,必填
@@ -284,6 +285,7 @@ type AnyMapSlice []map[string]interface{} // [SliceType] key is index,value为(k
 	master.dataSourceName = root:root@tcp(127.0.0.1:3306)/dbName?charset=utf8 // 连接参数
 	master.maxIdleConn = 100 // 空闲连接数
 	master.maxOpenConn = 100 // 最大连接数
+
 	; 从库
 	slave.driverName = mysql
 	slave.dataSourceName = root:root@tcp(127.0.0.1:3306)/dbName?charset=utf8
@@ -584,7 +586,7 @@ redisDao := RedisModel(&TestModel{})
 示例:
 pool := RedisModel(&TestModel{}).Pool()
 ```
-#####  // 执行redis命令,返回\*base.AnyValue,可进行类型转换. 参数name:命令名称 args:该命令对应的参数
+##### 执行redis命令,返回\*base.AnyValue,可进行类型转换. 参数name:命令名称 args:该命令对应的参数
 ```go
 (rd *RedisDao) Command(name string, args ...interface{}) *base.AnyValue
 
