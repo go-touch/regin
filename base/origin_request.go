@@ -14,10 +14,11 @@ const defaultMultipartMemory = 32 << 20 // 32 MB
 
 type Request struct {
 	*http.Request
+	Storage       *AnyMap // 运行期间的存储容器
 	paramMap      StringMap
 	getMap        StringMap
 	cookieMap     StringMap
-	postMap       AnyMap
+	postMap       *AnyMap
 	postFileSlice []*multipart.FileHeader
 	rawSlice      []byte
 	error         error
@@ -33,10 +34,17 @@ func init() {
 // Create an new Request.
 func (r *Request) Factory(c *gin.Context) *Request {
 	request := &Request{Request: c.Request}
+	_ = request.init()
 	_ = request.initParam(c.Params)
 	_ = request.initGet()
 	_ = request.initPost()
 	return request
+}
+
+// Init data.
+func (r *Request) init() error {
+	r.Storage = &AnyMap{}
+	return nil
 }
 
 // Init Param data.
@@ -61,7 +69,7 @@ func (r *Request) initGet() error {
 
 // Init POST data.
 func (r *Request) initPost() error {
-	r.postMap = AnyMap{}
+	r.postMap = &AnyMap{}
 	if r.Method != "POST" {
 		return r.error
 	}
@@ -74,9 +82,9 @@ func (r *Request) initPost() error {
 		}
 		for key, value := range r.PostForm {
 			if len(value) == 1 {
-				r.postMap[key] = value[0]
+				r.postMap.Set(key, value[0])
 			} else {
-				r.postMap[key] = value
+				r.postMap.Set(key, value)
 			}
 		}
 		return nil
@@ -85,11 +93,11 @@ func (r *Request) initPost() error {
 			return r.error
 		}
 		if strings.Contains(ct, "/json") { // Content-Type is Json.
-			if r.error = json.Unmarshal(r.rawSlice, &r.postMap); r.error != nil {
+			if r.error = json.Unmarshal(r.rawSlice, r.postMap); r.error != nil {
 				return r.error
 			}
 		} else if strings.Contains(ct, "/xml") { // Content-Type is Xml.
-			if r.error = xml.Unmarshal(r.rawSlice, &r.postMap); r.error != nil {
+			if r.error = xml.Unmarshal(r.rawSlice, r.postMap); r.error != nil {
 				return r.error
 			}
 		}
@@ -147,14 +155,14 @@ func (r *Request) Post(key string, defaultValue ...interface{}) (value interface
 	if defaultValue != nil {
 		val = defaultValue[0]
 	}
-	if value, ok := r.postMap[key]; ok {
+	if value, ok := (*r.postMap)[key]; ok {
 		return value, r.error
 	}
 	return val, r.error
 }
 
 // POST param array.
-func (r *Request) PostAll() (anyMap AnyMap, err error) {
+func (r *Request) PostAll() (anyMap *AnyMap, err error) {
 	return r.postMap, r.error
 }
 
@@ -166,4 +174,9 @@ func (r *Request) PostFile(name string) []*multipart.FileHeader {
 		}
 	}
 	return r.postFileSlice
+}
+
+// 获取元数据
+func (r *Request) Raw() []byte {
+	return r.rawSlice
 }

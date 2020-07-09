@@ -21,8 +21,10 @@ func (am *AnyMap) Set(key string, value interface{}) {
 }
 
 // 读取
-func (am *AnyMap) Get(key string) *AnyValue {
-	if value, ok := (*am)[key]; ok {
+func (am *AnyMap) Get(key ...string) *AnyValue {
+	if key == nil || key[0] == "" {
+		return Eval(*am)
+	} else if value, ok := (*am)[key[0]]; ok {
 		return Eval(value)
 	}
 	return Eval("")

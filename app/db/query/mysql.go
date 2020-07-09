@@ -49,7 +49,7 @@ func (mq *MysqlQuery) Clone() BaseQuery {
 
 // 重置结构体
 func (mq *MysqlQuery) Reset() error {
-	mq.table = parts.MakeTable()
+	//mq.table = parts.MakeTable()
 	mq.field = parts.MakeField()
 	mq.where = parts.MakeWhere()
 	mq.order = parts.MakeOrder()
