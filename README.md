@@ -83,16 +83,22 @@ import (
 
 func init() {
 	base.Router.General("demo", base.GeneralMap{
-		"index":         &demo.Index{}, // demo包下的action：Index
+		"v1.index":      &demo.Index{}, // demo包下的action：Index
 		"role.checkapi": &role.CheckApi{}, // role包下的action：CheckApi
 	})
 }
 ```
-#### 路径访问
-	格式: http://127.0.0.1/module/controller/action
-	例如: http://127.0.0.1/demo/v1/index
-	备注: regin中的路由比较松散,url中pathinfo采用三段路径, 通过获取三段路由信息,使用 . 拼接作为key,读取路由map里面对应的action(action定义可查看web应用介绍). 因此路径的含义可依据路由配置定义,并无严格规定.
+```go
+访问:
+http://127.0.0.1/module/controller/action
 
+示例:
+http://127.0.0.1/demo/v1/index
+http://127.0.0.1/demo/role/checkapi
+```
+```go
+Note: regin中的路由比较松散,url中pathinfo采用三段路径, 通过获取三段路由信息,使用 . 拼接作为key,读取路由map里面对应的action(action定义可查看web应用介绍). 因此路径的含义可依据路由配置定义,并无严格规定.
+```
 ### <a id="路由配置">服务配置</a>
 #### 配置项 xxx/config/server.ini
 	; 主配置
