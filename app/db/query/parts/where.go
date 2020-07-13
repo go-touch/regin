@@ -48,7 +48,7 @@ func (w *Where) GetExpr() string {
 		if len(exprArray) > 0 {
 			exprArray[0] = "`" + exprArray[0] + "`"
 			subWhere.expr = strings.Join(exprArray, " ")
-			if regexp.MustCompile(`\s(=|!=|like|not like)\s(\?)`+"$").FindString(subWhere.expr) != "" {
+			if regexp.MustCompile(`\s(=|!=|like|not like|>|>=|<|<=)\s(\?)`+"$").FindString(subWhere.expr) != "" {
 				sqlExpr = append(sqlExpr, subWhere.linkSymbol)
 				sqlExpr = append(sqlExpr, subWhere.expr)
 				w.args = append(w.args, subWhere.value)
