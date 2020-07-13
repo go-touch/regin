@@ -72,7 +72,7 @@ func (d *Dao) Where(field interface{}, value interface{}, linkSymbol ...string) 
 		f = strings.TrimSpace(f)
 		f = regexp.MustCompile(`\s+`+"").ReplaceAllString(f, " ")
 		expr = append(expr, strings.Split(f, " ")...)
-		if regexp.MustCompile(`(=|!=|like|not like)`+"").FindString(f) == "" {
+		if regexp.MustCompile(`(=|!=|like|not like|>|>=|<|<=)`+"").FindString(f) == "" {
 			expr = append(expr, "=")
 		}
 		expr = append(expr, "?")
