@@ -613,15 +613,15 @@ ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
 ret.ToAffectedRows() // 返回受影响行数
 ```
 ### <a id="Utils工具">Utils工具</a>
-####Form表单验证
-#####Form Model结构体示例
+#### Form表单验证
+##### Form Model结构体示例
 ```go
 type PlusUsers struct {
 	UserId  int    `key:"user_id" require:"true" length:"0|5"`
 	Account string `key:"account" require:"true" length:"0|20"`
 }
 ```
-#####Form验证器的使用
+##### Form验证器的使用
 ```go
 第一种方式:
 result := validator.Form(&PlusUsers{}).Verify(&map[string]interface{}{
@@ -634,8 +634,8 @@ result := validator.Form("PlusUsers").Verify(&map[string]interface{}{
 	"user_id": 1,
 })
 ```
-#####Form验证器方法:
-#####获取一个Form Dao
+##### Form验证器方法:
+##### 获取一个Form Dao
 ```go
 // 获取 Form Dao
 Form(userModel interface{}) *FormHandle
@@ -643,7 +643,7 @@ Form(userModel interface{}) *FormHandle
 示例:
 formDao :=  validator.Form(&PlusUsers{})
 ```
-#####获取一个Form Dao(另一种方式)
+##### 获取一个Form Dao(另一种方式)
 ```go
 // 注册 Form Model
 RegisterForm(userModel interface{}, alias ...string)
@@ -655,7 +655,7 @@ Form(userModel interface{}) *FormHandle
 validator.RegisterForm(&PlusUsers{}, "PlusUsers")
 formDao := validator.Form("PlusUsers")
 ```
-#####验证一个*map[string]interface{}
+##### 验证一个*map[string]interface{}
 ```go
 (mh *FormHandle) Verify(vMap *map[string]interface{}) []*tag.Result
 ```
