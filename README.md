@@ -613,7 +613,7 @@ ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
 ret.ToAffectedRows() // 返回受影响行数
 ```
 ### <a id="Utils工具">Utils工具</a>
-####1. Form表单验证
+####Form表单验证
 #####Form Model结构体示例
 ```go
 type PlusUsers struct {
