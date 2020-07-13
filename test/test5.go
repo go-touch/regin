@@ -6,12 +6,12 @@ import (
 )
 
 type PlusUsers struct {
-	UserId int    `key:"user_id" require:"true" length:"4|5"`
-	Test   string `key:"test" require:"true" length:"0|255"`
+	UserId  int    `key:"user_id" require:"true" length:"0|5"`
+	Account string `key:"account" require:"true" length:"0|20"`
 }
 
 func main() {
-	validator.RegisterForm(&PlusUsers{},"PlusUsers")
+	validator.RegisterForm(&PlusUsers{}, "PlusUsers")
 	dao := validator.Form("PlusUsers")
 
 	for _, v := range dao.FieldMap {
@@ -26,8 +26,4 @@ func main() {
 		fmt.Println(v)
 	}
 
-}
-
-func verify(m map[string]interface{}) {
-	fmt.Println("测试")
 }

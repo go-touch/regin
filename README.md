@@ -10,6 +10,13 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 - [数据库](#数据库)
 - [Redis](#Redis)
 - [Utils工具](#Utils工具)
+	- config文件解析器(支持json、ini)
+	- 加密算法
+	- 类型处理(自定义类型、基本类型转换)
+	- 验证器
+	- curl
+	- 文件操作
+	- ...
 
 ### <a id="安装与配置">安装与配置</a>
 #### 1. 安装Go (version 1.10+), 然后可使用下面命令进行安装regin
@@ -245,7 +252,7 @@ func (r *Result) CreateHtml(page string, status int, msg string) *Result {
 	(r *Result) SetData(key string, value interface{})
 ##### 获取业务数据即 *base.Result 的 Data 字段
 	(r *Result) GetData(key string) interface{} 
-#### *AnyValue值类型（用于数据转换,对于不确定类型interfa{}比较适用,包名base)
+#### *base.AnyValue值类型（用于数据转换,对于不确定类型interfa{}比较适用)
 ##### 获取 *base.AnyValue. 参数value:interface{}(可传任意值)
 	base.Eval(value interface{}) *AnyValue
 ##### 返回错误信息
@@ -354,7 +361,9 @@ row := db.Model("Users").FetchRow(func(dao *db.Dao) {
 	dao.Where("id", 1)
 })
 ```
-	Node: 推荐使用第二种方式,可以在初始化函数 init 批量注册model,这样在系统加载的时候回调用一次注入容器
+```go
+Node: 推荐使用第二种方式,可以在初始化函数 init 批量注册model,这样在系统加载的时候仅调用一次注入容器.
+```
 #### db.Dao方法(举例均采用上述的第二种方式)
 ##### 获取Dao数据对象.
 ```go
@@ -604,8 +613,51 @@ ret.ToError() // 可获取错误信息,如果返回nil,则说明无错误发生
 ret.ToAffectedRows() // 返回受影响行数
 ```
 ### <a id="Utils工具">Utils工具</a>
-1. Curl功能
-2. File基本操作
-3. Convert数据类型转换
-4. ConfigParser配置解析器
-5. ...
+####1. Form表单验证
+#####Form Model结构体示例
+```go
+type PlusUsers struct {
+	UserId  int    `key:"user_id" require:"true" length:"0|5"`
+	Account string `key:"account" require:"true" length:"0|20"`
+}
+```
+#####Form验证器的使用
+```go
+第一种方式:
+result := validator.Form(&PlusUsers{}).Verify(&map[string]interface{}{
+	"user_id": 1,
+})
+
+第二种方式:
+validator.RegisterForm(&PlusUsers{}, "PlusUsers")
+result := validator.Form("PlusUsers").Verify(&map[string]interface{}{
+	"user_id": 1,
+})
+```
+#####Form验证器方法:
+#####获取一个Form Dao
+```go
+// 获取 Form Dao
+Form(userModel interface{}) *FormHandle
+
+示例:
+formDao :=  validator.Form(&PlusUsers{})
+```
+#####获取一个Form Dao(另一种方式)
+```go
+// 注册 Form Model
+RegisterForm(userModel interface{}, alias ...string)
+
+// 获取 Form Dao
+Form(userModel interface{}) *FormHandle
+
+示例:
+validator.RegisterForm(&PlusUsers{}, "PlusUsers")
+formDao := validator.Form("PlusUsers")
+```
+#####验证一个*map[string]interface{}
+```go
+(mh *FormHandle) Verify(vMap *map[string]interface{}) []*tag.Result
+```
+
+

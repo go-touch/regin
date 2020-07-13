@@ -23,7 +23,23 @@ func init() {
 
 // Run HttpServer
 func (ed *EngineDispatcher) HttpServer(server base.WebServer) {
+	// 注册路由
 	ed.origin.Any("/:module/:controller/:action", func(c *gin.Context) {
+		// Error catch.
+		defer func() {
+			if err := server.GetError(); err != nil {
+				result := base.ResultInvoker.CreateJson(200, "")
+				result.SetData("code", 10000)
+				result.SetData("msg", err.Error())
+				_ = ed.response.Output(c, result)
+			}
+		}()
+		defer server.ErrorCatch()
+		_ = ed.response.Output(c, server.Work(base.RequestInvoker.Factory(c)))
+	})
+
+	// 注册路由
+	ed.origin.Any("/:module/:controller", func(c *gin.Context) {
 		// Error catch.
 		defer func() {
 			if err := server.GetError(); err != nil {
