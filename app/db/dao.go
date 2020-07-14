@@ -176,7 +176,7 @@ func (d *Dao) Update(userFunc ...UserFunc) *AnyValue {
 }
 
 // 删除记录
-func (d *Dao) DELETE(userFunc ...UserFunc) *AnyValue {
+func (d *Dao) Delete(userFunc ...UserFunc) *AnyValue {
 	defer d.reset()
 	return d.modify("DELETE", userFunc...)
 }
