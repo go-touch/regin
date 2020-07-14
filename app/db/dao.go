@@ -66,15 +66,38 @@ func (d *Dao) Field(field interface{}) *Dao {
 }
 
 // Where条件
-func (d *Dao) Where(field interface{}, value interface{}, linkSymbol ...string) *Dao {
+func (d *Dao) Where(field string, value interface{}, linkSymbol ...string) *Dao {
 	expr := make([]string, 0)
-	if f, ok := field.(string); ok {
-		f = strings.TrimSpace(f)
-		f = regexp.MustCompile(`\s+`+"").ReplaceAllString(f, " ")
-		expr = append(expr, strings.Split(f, " ")...)
-		if regexp.MustCompile(`(=|!=|like|not like|>|>=|<|<=)`+"").FindString(f) == "" {
-			expr = append(expr, "=")
+	field = strings.TrimSpace(field)
+	field = regexp.MustCompile(`\s+`+"").ReplaceAllString(field, " ")
+
+	// Where expr.
+	expr = append(expr, strings.Split(field, " ")...)
+	if regexp.MustCompile(`(<|<=|=|>|>=|!=|like|not like)`+"").FindString(field) != "" {
+		expr = append(expr, "?")
+	} else if regexp.MustCompile("in").FindString(field) != "" {
+		newValue := make([]interface{}, 0)
+		if val, ok := value.(string); ok {
+			stringSlice := strings.Split(val, ",")
+			for _, val := range stringSlice {
+				newValue = append(newValue, val)
+			}
+		} else if val, ok := value.([]int); ok {
+			for _, v := range val {
+				newValue = append(newValue, v)
+			}
+		} else if val, ok := value.([]string); ok {
+			for _, v := range val {
+				newValue = append(newValue, "'"+v+"'")
+			}
 		}
+		inValue := strings.Repeat("?,", len(newValue))
+		inValue = strings.Trim(inValue, ",")
+		inValue = "(" + inValue + ")"
+		expr = append(expr, inValue)
+		value = newValue
+	} else {
+		expr = append(expr, "=")
 		expr = append(expr, "?")
 	}
 	d.query.Where(strings.Join(expr, " "), value, linkSymbol...)

@@ -44,7 +44,7 @@ func (w *Where) GetExpr() string {
 	for _, subWhere := range w.members {
 		subWhere.expr = regexp.MustCompile(`\s+`+"").ReplaceAllString(subWhere.expr, "|")
 		exprArray := strings.Split(subWhere.expr, "|")
-
+		// 长度判断
 		if len(exprArray) > 0 {
 			exprArray[0] = "`" + exprArray[0] + "`"
 			subWhere.expr = strings.Join(exprArray, " ")
@@ -52,6 +52,12 @@ func (w *Where) GetExpr() string {
 				sqlExpr = append(sqlExpr, subWhere.linkSymbol)
 				sqlExpr = append(sqlExpr, subWhere.expr)
 				w.args = append(w.args, subWhere.value)
+			} else if regexp.MustCompile(`\s(in)\s\(\S+\)`+"$").FindString(subWhere.expr) != "" {
+				sqlExpr = append(sqlExpr, subWhere.linkSymbol)
+				sqlExpr = append(sqlExpr, subWhere.expr)
+				if v, ok := subWhere.value.([]interface{}); ok {
+					w.args = append(w.args, v...)
+				}
 			}
 		}
 	}
