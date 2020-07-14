@@ -88,8 +88,12 @@ func (av *AnyValue) ToValue() interface{} {
 func (av *AnyValue) ToError() error {
 	switch av.getType() {
 	case SqlResult:
-		_, err := av.value.(sql.Result).RowsAffected()
-		return err
+		if _, err := av.value.(sql.Result).RowsAffected(); err != nil {
+			return err
+		}
+		if _, err := av.value.(sql.Result).LastInsertId(); err != nil {
+			return err
+		}
 	case Error:
 		return av.value.(error)
 	}
