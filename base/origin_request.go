@@ -14,8 +14,9 @@ import (
 const defaultMultipartMemory = 32 << 20 // 32 MB
 
 type Request struct {
+
 	*http.Request
-	Storage       *AnyMap // 运行期间的存储容器
+	Storage       *multitype.AnyMap // 运行期间的存储容器
 	paramMap      StringMap
 	getMap        StringMap
 	cookieMap     StringMap
@@ -44,7 +45,7 @@ func (r *Request) Factory(c *gin.Context) *Request {
 
 // Init data.
 func (r *Request) init() error {
-	r.Storage = &AnyMap{}
+	r.Storage = &multitype.AnyMap{}
 	return nil
 }
 

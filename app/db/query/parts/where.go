@@ -49,11 +49,10 @@ func (w *Where) GetExpr() string {
 			exprArray[0] = "`" + exprArray[0] + "`"
 			subWhere.expr = strings.Join(exprArray, " ")
 			if regexp.MustCompile(`\s(=|!=|like|not like|>|>=|<|<=)\s(\?)`+"$").FindString(subWhere.expr) != "" {
-				sqlExpr = append(sqlExpr, subWhere.linkSymbol)
-				sqlExpr = append(sqlExpr, subWhere.expr)
+				sqlExpr = append(sqlExpr, subWhere.linkSymbol, subWhere.expr)
 				w.args = append(w.args, subWhere.value)
 			} else if regexp.MustCompile(`\s(in)\s\(\S+\)`+"$").FindString(subWhere.expr) != "" {
-				sqlExpr = append(sqlExpr, subWhere.linkSymbol)
+				sqlExpr = append(sqlExpr, subWhere.linkSymbol, subWhere.expr)
 				sqlExpr = append(sqlExpr, subWhere.expr)
 				if v, ok := subWhere.value.([]interface{}); ok {
 					w.args = append(w.args, v...)
