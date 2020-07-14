@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"github.com/gin-gonic/gin"
+	"github.com/go-touch/regin/utils/multitype"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -18,7 +19,7 @@ type Request struct {
 	paramMap      StringMap
 	getMap        StringMap
 	cookieMap     StringMap
-	postMap       AnyMap
+	postMap       *multitype.AnyMap
 	postFileSlice []*multipart.FileHeader
 	rawSlice      []byte
 	error         error
@@ -69,7 +70,7 @@ func (r *Request) initGet() error {
 
 // Init POST data.
 func (r *Request) initPost() error {
-	r.postMap = AnyMap{}
+	r.postMap = &multitype.AnyMap{}
 	if r.Method != "POST" {
 		return r.error
 	}
@@ -93,11 +94,11 @@ func (r *Request) initPost() error {
 			return r.error
 		}
 		if strings.Contains(ct, "/json") { // Content-Type is Json.
-			if r.error = json.Unmarshal(r.rawSlice, &r.postMap); r.error != nil {
+			if r.error = json.Unmarshal(r.rawSlice, r.postMap); r.error != nil {
 				return r.error
 			}
 		} else if strings.Contains(ct, "/xml") { // Content-Type is Xml.
-			if r.error = xml.Unmarshal(r.rawSlice, &r.postMap); r.error != nil {
+			if r.error = xml.Unmarshal(r.rawSlice, r.postMap); r.error != nil {
 				return r.error
 			}
 		}
@@ -150,20 +151,20 @@ func (r *Request) GetAll() StringMap {
 }
 
 // POST param.
-func (r *Request) Post(key string, defaultValue ...interface{}) (value interface{}, err error) {
+func (r *Request) Post(key string, defaultValue ...interface{}) interface{} {
 	var val interface{}
 	if defaultValue != nil {
 		val = defaultValue[0]
 	}
-	if value, ok := r.postMap[key]; ok {
-		return value, r.error
+	if value, ok := (*r.postMap)[key]; ok {
+		return value
 	}
-	return val, r.error
+	return val
 }
 
 // POST param array.
-func (r *Request) PostAll() (anyMap AnyMap, err error) {
-	return r.postMap, r.error
+func (r *Request) PostAll() *multitype.AnyMap {
+	return r.postMap
 }
 
 // POST file.
