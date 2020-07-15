@@ -25,7 +25,7 @@ func init() {
 		logger:    &core.Logger{},
 		router:    base.Router,
 	}
-	defer App.ErrorCatch()
+	//defer App.ErrorCatch()
 	App.init()
 	App.initCore()
 	App.initExpand()
