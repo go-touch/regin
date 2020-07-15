@@ -237,12 +237,16 @@ func (d *Dao) parserRow() *AnyValue {
 	for k := range args {
 		args[k] = &args[k]
 	}
-	err := sqlRow.Scan(args...)
-	if err != nil {
-		return Eval(err)
-	}
 	// 接收查询结果
 	row := make(map[string]interface{})
+	err := sqlRow.Scan(args...)
+	if err != nil {
+		if regexp.MustCompile("no rows in result set").FindString(err.Error()) != "" {
+			return Eval(row)
+		}
+		return Eval(err)
+	}
+	// 结果处理
 	for i := 0; i < len(column); i++ {
 		row[column[i]] = args[i]
 	}
