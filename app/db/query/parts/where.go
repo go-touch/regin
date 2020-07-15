@@ -53,7 +53,6 @@ func (w *Where) GetExpr() string {
 				w.args = append(w.args, subWhere.value)
 			} else if regexp.MustCompile(`\s(in)\s\(\S+\)`+"$").FindString(subWhere.expr) != "" {
 				sqlExpr = append(sqlExpr, subWhere.linkSymbol, subWhere.expr)
-				sqlExpr = append(sqlExpr, subWhere.expr)
 				if v, ok := subWhere.value.([]interface{}); ok {
 					w.args = append(w.args, v...)
 				}
