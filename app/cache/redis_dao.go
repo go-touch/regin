@@ -32,8 +32,9 @@ func (rd *RedisDao) Pool() *redis.Pool {
 
 // 执行redis命令
 func (rd *RedisDao) Command(name string, args ...interface{}) *base.AnyValue {
-	defer func() { _ = rd.pool.Close() }()
-	result, err := rd.Pool().Get().Do(name, args...)
+	redisConn := rd.Pool().Get()
+	defer func() { _ = redisConn.Close() }()
+	result, err := redisConn.Do(name, args...)
 	if err != nil {
 		return base.Eval(err)
 	}
