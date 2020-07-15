@@ -82,13 +82,17 @@ func (d *Dao) Where(field string, value interface{}, linkSymbol ...string) *Dao 
 			for _, val := range stringSlice {
 				newValue = append(newValue, val)
 			}
+		} else if val, ok := value.([]interface{}); ok {
+			for _, v := range val {
+				newValue = append(newValue, v)
+			}
 		} else if val, ok := value.([]int); ok {
 			for _, v := range val {
 				newValue = append(newValue, v)
 			}
 		} else if val, ok := value.([]string); ok {
 			for _, v := range val {
-				newValue = append(newValue, "'"+v+"'")
+				newValue = append(newValue, v)
 			}
 		}
 		inValue := strings.Repeat("?,", len(newValue))
