@@ -676,8 +676,10 @@ func (gc *GetCaller) Call(url string, args ...map[string]interface{}) *multitype
 ##### GET请求示例:
 ```go
 get := curl.Get()
+
 // 如需设置header, 则使用此方法
 get.Header(map[string]string{"Authorization":"Basic MTAwMToxMjM0NTY="})
+
 // 发送请求
 get.Call("http://www.baidu.com",map[string]interface{}{
 	"user_id":  1,
@@ -714,6 +716,7 @@ post.Call("http://www.baidu.com",map[string]interface{}{
 	"username": "admin",
 	"password": "123456",
 })
+
 // 发送请求(json串形式)
 post.Call("http://www.baidu.com",`{"user_id":1,"username":"admin","password":"123456"}`)
 ```
