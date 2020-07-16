@@ -1,6 +1,7 @@
 package multitype
 
 import (
+	"encoding/json"
 	"strconv"
 )
 
@@ -278,6 +279,11 @@ func ToType(src interface{}, dstType string) interface{} {
 				v = append(v, ToType(value, StringT).(string))
 			}
 			return v
+		case AnyMapT:
+			var v map[string]interface{}
+			if err := json.Unmarshal(src.([]byte), &v); err == nil {
+				return v
+			}
 		}
 	case StringSliceT:
 		switch dstType {

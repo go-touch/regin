@@ -659,5 +659,73 @@ formDao := validator.Form("PlusUsers")
 ```go
 (mh *FormHandle) Verify(vMap *map[string]interface{}) []*tag.Result
 ```
+#### Curl使用
+##### GET请求
+##### 获取一个 *curl.GetCaller
+```go
+func Get() *GetCaller
+```
+##### 设置header信息
+```go
+func (gc *GetCaller) Header(header map[string]string)
+```
+##### 发送一个GET请求
+```go
+func (gc *GetCaller) Call(url string, args ...map[string]interface{}) *multitype.AnyValue
+```
+##### GET请求示例:
+```go
+get := curl.Get()
+// 如需设置header, 则使用此方法
+get.Header(map[string]string{"Authorization":"Basic MTAwMToxMjM0NTY="})
+// 发送请求
+get.Call("http://www.baidu.com",map[string]interface{}{
+	"user_id":  1,
+	"username": "admin",
+	"password": "123456",
+})
+```
+##### POST请求
+##### 获取一个 *curl.PostCaller
+```go
+func Post() *PostCaller
+```
+##### 设置header信息
+```go
+func (pc *PostCaller) Header(header map[string]string)
+```
+##### 发送一个POST请求
+```go
+func (pc *PostCaller) Call(url string, args ...interface{}) *multitype.AnyValue
+```
+##### POST请求示例:
+```go
+post := curl.Post()
+
+// 如需设置header, 则使用此方法
+post.Header(map[string]string{"Authorization":"Basic MTAwMToxMjM0NTY="})
+
+// 设置 json 请求 header, 默认 header {"Content-Type": "application/x-www-form-urlencoded"}
+post.Header(map[string]string{"Content-Type": "application/json"})
+
+// 发送请求(key-value形式)
+post.Call("http://www.baidu.com",map[string]interface{}{
+	"user_id":  1,
+	"username": "admin",
+	"password": "123456",
+})
+// 发送请求(json串形式)
+post.Call("http://www.baidu.com",`{"user_id":1,"username":"admin","password":"123456"}`)
+```
+
+
+
+
+
+
+
+
+
+
 
 
