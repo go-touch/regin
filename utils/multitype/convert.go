@@ -10,6 +10,7 @@ const (
 	IntT            = "Int"            // 类型: int
 	ByteT           = "Byte"           // 类型: byte
 	RuneT           = "Rune"           // 类型: rune
+	Float64T        = "Float64"        // 类型: float64
 	StringT         = "String"         // 类型: string
 	BoolT           = "Bool"           // 类型: bool
 	IntSliceT       = "IntSlice"       // 类型: []int
@@ -153,6 +154,8 @@ func GetType(value interface{}) string {
 		return ByteT
 	case rune:
 		return RuneT
+	case float64:
+		return Float64T
 	case string:
 		return StringT
 	case bool:
@@ -208,6 +211,21 @@ func ToType(src interface{}, dstType string) interface{} {
 			return string([]byte{src.(byte)})
 		case BoolT: // byte 转 bool
 			if src.(byte) > 0 {
+				return true
+			}
+			return false
+		}
+	case Float64T:
+		switch dstType { // byte 转 int
+		case IntT:
+			return int(src.(float64))
+		case ByteT: // byte 转 byte
+			return byte(src.(float64))
+		case StringT: // byte 转 string
+			v := int(src.(float64))
+			return ToType(v, StringT)
+		case BoolT: // byte 转 bool
+			if src.(float64) > 0 {
 				return true
 			}
 			return false
