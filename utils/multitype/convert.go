@@ -35,6 +35,16 @@ func Eval(value interface{}) *AnyValue {
 	return &AnyValue{value: value}
 }
 
+// 获取原值类型
+func (av *AnyValue) Type() string {
+	return GetType(av.value)
+}
+
+// 获取原值
+func (av *AnyValue) Value() interface{} {
+	return av.value
+}
+
 // 返回错误信息
 func (av *AnyValue) ToError() error {
 	switch GetType(av.value) {
@@ -42,11 +52,6 @@ func (av *AnyValue) ToError() error {
 		return av.value.(error)
 	}
 	return nil
-}
-
-// 返回原值
-func (av *AnyValue) ToValue() interface{} {
-	return av.value
 }
 
 // 转成int类型

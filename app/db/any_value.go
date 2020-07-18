@@ -168,6 +168,24 @@ func (av *AnyValue) ToStringMap() map[string]string {
 	return rValue
 }
 
+// 转换成 map[string]interface{}
+func (av *AnyValue) ToAnyMap() map[string]interface{} {
+	rValue := map[string]interface{}{}
+	switch av.getType() {
+	case AnyMap:
+		for key, value := range av.value.(map[string]interface{}) {
+			if dv, ok := value.([]byte); ok {
+				rValue[key] = string(dv)
+			} else if dv, ok := value.(int64); ok {
+				rValue[key] = strconv.Itoa(int(dv))
+			} else if value == nil {
+				rValue[key] = ""
+			}
+		}
+	}
+	return rValue
+}
+
 // 转换成 []map[string]string
 func (av *AnyValue) ToStringMapSlice() []map[string]string {
 	rValue := make([]map[string]string, 0)
