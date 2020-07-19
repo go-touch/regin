@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"github.com/gin-gonic/gin"
-	"github.com/go-touch/regin/utils/multitype"
+	"github.com/go-touch/mtype"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -14,13 +14,12 @@ import (
 const defaultMultipartMemory = 32 << 20 // 32 MB
 
 type Request struct {
-
 	*http.Request
-	Storage       *multitype.AnyMap // 运行期间的存储容器
+	Storage       *mtype.AnyMap // 运行期间的存储容器
 	paramMap      StringMap
 	getMap        StringMap
 	cookieMap     StringMap
-	postMap       *multitype.AnyMap
+	postMap       *mtype.AnyMap
 	postFileSlice []*multipart.FileHeader
 	rawSlice      []byte
 	error         error
@@ -45,7 +44,7 @@ func (r *Request) Factory(c *gin.Context) *Request {
 
 // Init data.
 func (r *Request) init() error {
-	r.Storage = &multitype.AnyMap{}
+	r.Storage = &mtype.AnyMap{}
 	return nil
 }
 
@@ -71,7 +70,7 @@ func (r *Request) initGet() error {
 
 // Init POST data.
 func (r *Request) initPost() error {
-	r.postMap = &multitype.AnyMap{}
+	r.postMap = &mtype.AnyMap{}
 	if r.Method != "POST" {
 		return r.error
 	}
@@ -164,7 +163,7 @@ func (r *Request) Post(key string, defaultValue ...interface{}) interface{} {
 }
 
 // POST param array.
-func (r *Request) PostAll() *multitype.AnyMap {
+func (r *Request) PostAll() *mtype.AnyMap {
 	return r.postMap
 }
 
