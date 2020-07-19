@@ -13,20 +13,20 @@ type Timer struct {
 
 // 获取 Timer
 func Time(timeStr ...string) Timer {
-	var timer Timer
+	var timer *Timer
 	if timeStr != nil {
 		if t, err := time2.Parse(TimeFormat, timeStr[0]); err == nil {
-			timer = Timer{
+			timer = &Timer{
 				t,
 			}
 		}
 	}
-	if &timer == nil {
-		timer = Timer{
+	if timer == nil {
+		timer = &Timer{
 			time2.Now(),
 		}
 	}
-	return timer
+	return *timer
 }
 
 // 格式化输出
