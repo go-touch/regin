@@ -1,6 +1,7 @@
 package parts
 
 import (
+	"regexp"
 	"strings"
 )
 
@@ -21,8 +22,16 @@ func MakeSet() *Set {
 func (s *Set) SetExpr(valueMap map[string]interface{}) {
 	sqlExpr := make([]string, 0)
 	for key, value := range valueMap {
-		key = "`" + strings.TrimSpace(key) + "`"
-		unit := []string{key, "=", "?"}
+		key = strings.TrimSpace(key)
+		var unit []string
+		if regexp.MustCompile(`\s(\+|\-)`+"").FindString(key) != "" {
+			key = regexp.MustCompile(`\s+`+"").ReplaceAllString(key, "|")
+			keySlice := strings.Split(key, "|")
+			unit = []string{"`" + keySlice[0] + "`", "=", "`" + keySlice[0] + "`", keySlice[1], "?"}
+		} else {
+			key = "`" + strings.TrimSpace(key) + "`"
+			unit = []string{key, "=", "?"}
+		}
 		sqlExpr = append(sqlExpr, strings.Join(unit, " "))
 		s.args = append(s.args, value)
 	}

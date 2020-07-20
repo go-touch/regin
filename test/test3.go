@@ -25,10 +25,8 @@ func main() {
 	})
 
 	model := cache.RedisModel(new(RedisModel))
-	ret := model.Command("set", "name", "admin`1232")
+	ret := model.Command("incrby", "bind-phone-index_msg_limit_16619709811",20)
 
-	fmt.Println(model)
-	fmt.Println(ret)
-	fmt.Printf("返回值类型:%T\n",ret.ToValue())
+	fmt.Println(ret.Value())
 
 }
