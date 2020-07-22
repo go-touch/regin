@@ -116,12 +116,23 @@ func (d *Dao) WhereMap(fieldMap map[string]interface{}, linkSymbol ...string) *D
 	return d
 }
 
-// 绑定数据
+// Bind SQL VALUES for INSERT or UPDATE SQL.
 func (d *Dao) Values(valueMap map[string]interface{}) *Dao {
 	if d.query.GetSqlType() == "INSERT" {
 		d.query.Values(valueMap)
 	} else {
 		d.query.Set(valueMap)
+	}
+	return d
+}
+
+// Batch bind VALUES for INSERT SQL.
+func (d *Dao) BatchValues(anyMapSlice []map[string]interface{}) *Dao {
+	if len(anyMapSlice) > 20 {
+		anyMapSlice = anyMapSlice[0:20]
+	}
+	for _, anyMap := range anyMapSlice {
+		d.query.Values(anyMap)
 	}
 	return d
 }

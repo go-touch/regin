@@ -1,48 +1,101 @@
 package parts
 
-import "strings"
+import (
+	"sort"
+	"strings"
+)
 
 type Values struct {
-	expr string        // 表达式
-	args []interface{} // 参数
+	member []*SubValues
 }
 
-// 创建values结构体
-func MakeValues() *Values {
-	return &Values{
-		expr: "",
-		args: make([]interface{}, 0),
-	}
+type SubValues struct {
+	expr     string
+	argsExpr string
+	args     []interface{}
 }
 
-// 设置SQL表达式
-func (v *Values) SetExpr(valueMap map[string]interface{}) {
+// Make SubValue.
+func MakeSubValues(anyMap map[string]interface{}) *SubValues {
+	expr := ""
+	argsExpr := ""
+	args := make([]interface{}, 0)
+
+	// SQL表达式
 	sqlExpr := make([]string, 0)
-	for key, value := range valueMap {
-		key = "`" + key + "`"
-		sqlExpr = append(sqlExpr, strings.TrimSpace(key))
-		v.args = append(v.args, value)
+	sqlValueExpr := make([]string, 0)
+	sortBy := make([]string, 0)
+	for key := range anyMap {
+		key = strings.TrimSpace(key)
+		sortBy = append(sortBy, key)
+	}
+	// Sort key.
+	sort.Strings(sortBy)
+	for _, key := range sortBy {
+		sqlExpr = append(sqlExpr, "`"+key+"`")
+		sqlValueExpr = append(sqlValueExpr, "?")
+		args = append(args, anyMap[key])
 	}
 	if len(sqlExpr) > 0 {
-		v.expr = "(" + strings.Join(sqlExpr, ",") + ")"
+		expr = "(" + strings.Join(sqlExpr, ",") + ")"
+		argsExpr = "(" + strings.Join(sqlValueExpr, ",") + ")"
+	}
+	return &SubValues{
+		expr:     expr,
+		argsExpr: argsExpr,
+		args:     args,
 	}
 }
 
-// 获取SQL表达式
+// Set SQL expr.
+func (sv *SubValues) GetExpr() string {
+	return sv.expr
+}
+
+// Get SQL VALUES expr.
+func (sv *SubValues) GetArgsExpr() string {
+	return sv.argsExpr
+}
+
+// Get SQL VALUES args.
+func (sv *SubValues) GetArgs() []interface{} {
+	return sv.args
+}
+
+// Make Values.
+func MakeValues() *Values {
+	return &Values{
+		member: make([]*SubValues, 0),
+	}
+}
+
+// Set SQL expr.
+func (v *Values) SetExpr(anyMap map[string]interface{}) {
+	v.member = append(v.member, MakeSubValues(anyMap))
+}
+
+// Get SQL expr.
 func (v *Values) GetExpr() string {
-	return v.expr
+	if len(v.member) > 0 {
+		return v.member[0].GetExpr()
+	}
+	return ""
 }
 
-// 获取SQL表达式
-func (v *Values) GetExprValues() string {
-	sqlExpr := make([]string, 0)
-	for i := 0; i < len(v.args); i++ {
-		sqlExpr = append(sqlExpr, "?")
+// Get SQL args expr.
+func (v *Values) GetArgsExpr() string {
+	argsExpr := make([]string, 0)
+	for _, subValues := range v.member {
+		argsExpr = append(argsExpr, subValues.GetArgsExpr())
 	}
-	return "(" + strings.Join(sqlExpr, ",") + ")"
+	return strings.Join(argsExpr, ",")
 }
 
 // 获取SQL表达式参数
 func (v *Values) GetArgs() []interface{} {
-	return v.args
+	args := make([]interface{}, 0)
+	for _, subValues := range v.member {
+		args = append(args, subValues.GetArgs()...)
+	}
+	return args
 }

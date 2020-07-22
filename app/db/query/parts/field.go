@@ -41,7 +41,7 @@ func (f *Field) SetExpr(expr interface{}) {
 		for k, v := range valueGroup {
 			if f := regexp.MustCompile(`\.` + "").FindString(v); f != "" {
 				valueGroup[k] = strings.Replace(v, ".", ".`", 1) + "`"
-			} else if regexp.MustCompile(`(count|as)+`+"").FindString(v) == "" {
+			} else if regexp.MustCompile(`(SUM|sum|COUNT|count|as|AS)+`+"").FindString(v) == "" {
 				valueGroup[k] = "`" + v + "`"
 			}
 		}

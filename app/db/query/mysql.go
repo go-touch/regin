@@ -140,7 +140,7 @@ func (mq *MysqlQuery) SetSql() BaseQuery {
 		mq.sqlExpr = sqlINSERT
 		mq.sqlExpr = strings.Replace(mq.sqlExpr, "{TABLE}", mq.table.GetExpr(), 1)
 		mq.sqlExpr = strings.Replace(mq.sqlExpr, "{FIELD}", mq.values.GetExpr(), 1)
-		mq.sqlExpr = strings.Replace(mq.sqlExpr, "{VALUES}", mq.values.GetExprValues(), 1)
+		mq.sqlExpr = strings.Replace(mq.sqlExpr, "{VALUES}", mq.values.GetArgsExpr(), 1)
 		mq.sqlParam = append(mq.sqlParam, mq.values.GetArgs()...)
 	case "UPDATE":
 		mq.sqlExpr = sqlUPDATE

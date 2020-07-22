@@ -77,15 +77,30 @@ func main() {
 
 	// 更新一条数据 -- 错误示例
 	model := db.Model(&AdminUsers{})
-	result := model.DELETE(func(dao *db.Dao) {
-		dao.Where("username", "admin123")
-		// dao.Sql()
+	result := model.Insert(func(dao *db.Dao) {
+		dao.BatchValues([]map[string]interface{}{
+			{
+				"username": "admin1",
+				"account":  "15116980818",
+			},
+			{
+				"username": "admin2",
+				"account":  "15116980818",
+			},
+			{
+				"username": "admin3",
+				"account":  "15116980818",
+			},
+		})
+		//dao.Sql()
 	})
 
-	fmt.Println(result)
-	fmt.Println(result.ToError())
+	fmt.Println(result.ToString())
 	fmt.Println(result.ToAffectedRows())
 
+	//sort.Strings()
 
-
+	/*fmt.Println(result)
+	fmt.Println(result.ToError())
+	fmt.Println(result.ToString())*/
 }
