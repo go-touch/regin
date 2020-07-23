@@ -53,13 +53,15 @@ func Model(userModel interface{}) *Dao {
 
 // 执行SQL - 查询一条数据
 func (d *Dao) QueryRow(sql string, args ...interface{}) *AnyValue {
-	defer d.reset()
-	sqlArray := strings.Split(sql, " ")
-	if strings.ToUpper(sqlArray[0]) == "SELECT" {
-		sqlRow := d.query.QueryRow(sql, args...)
-		return d.parserRow(sqlRow)
+	anyValue := d.Query(sql, args...)
+	if err := anyValue.ToError(); err != nil {
+		return Eval(err)
 	}
-	return Eval(errors.New("this sql is illegal,Please check it"))
+	if stringStringSlice := anyValue.ToStringMapSlice(); len(stringStringSlice) == 0 {
+		return Eval(map[string]string{})
+	} else {
+		return Eval(stringStringSlice[0])
+	}
 }
 
 // 执行SQL - 增删改查
