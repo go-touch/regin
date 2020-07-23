@@ -77,30 +77,41 @@ func main() {
 
 	// 更新一条数据 -- 错误示例
 	model := db.Model(&AdminUsers{})
-	result := model.Insert(func(dao *db.Dao) {
-		dao.BatchValues([]map[string]interface{}{
-			{
-				"username": "admin1",
-				"account":  "15116980818",
-			},
-			{
-				"username": "admin2",
-				"account":  "15116980818",
-			},
-			{
-				"username": "admin3",
-				"account":  "15116980818",
-			},
+	model.Begin() // 开始事务
+	ret1 := model.Update(func(dao *db.Dao) {
+		dao.Values(map[string]interface{}{
+			"account": "测试事务1",
 		})
+		dao.Where("username", "admin1")
 		//dao.Sql()
 	})
+	fmt.Printf("ret1的数据:%v\n", ret1.ToAffectedRows())
 
-	fmt.Println(result.ToString())
-	fmt.Println(result.ToAffectedRows())
+	// 查询
+	ret2 := model.FetchAll(func(dao *db.Dao) {
+		dao.Where("username", "admin1")
+	})
+	fmt.Printf("ret2的数据:%v\n", ret2.ToStringMapSlice())
 
-	//sort.Strings()
+	ret3 := db.Model(&AdminUsers{}).Update(func(dao *db.Dao) {
+		dao.Values(map[string]interface{}{
+			"account": "测试事务2",
+		})
+		dao.Where("username", "admin2")
+	})
+	fmt.Printf("ret3的数据:%v\n", ret3.ToAffectedRows())
+	model.Rollback()
 
-	/*fmt.Println(result)
-	fmt.Println(result.ToError())
-	fmt.Println(result.ToString())*/
+	/*model := db.Model(&AdminUsers{})
+	model.Test()
+	model.Begin()
+	model.Test()
+
+	db.Model(&AdminUsers{}).Test()
+	db.Model(&AdminUsers{}).Test()
+	db.Model(&AdminUsers{}).Test()*/
+
+
+
+
 }

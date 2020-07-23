@@ -5,6 +5,7 @@ import (
 	"errors"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-touch/regin/app/db/query"
+	"strconv"
 )
 
 // 查询构造器容器
@@ -58,6 +59,12 @@ func GetQueryBuilder(identify string) query.BaseQuery {
 	} else if queryBuilder := query.GetQueryBuilder(configParam["driverName"]); queryBuilder == nil {
 		panic("Create '" + configParam["driverName"] + "' Query Builder failed.")
 	} else {
+		if maxIdleConn, err := strconv.Atoi(configParam["maxIdleConn"]); err == nil {
+			db.SetMaxIdleConns(maxIdleConn)
+		}
+		if maxOpenConn, err := strconv.Atoi(configParam["maxOpenConn"]); err == nil {
+			db.SetMaxOpenConns(maxOpenConn)
+		}
 		queryBuilder.SetDb(db)
 		_ = Query.Set(identify, queryBuilder)
 		return queryBuilder.Clone()

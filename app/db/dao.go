@@ -1,6 +1,8 @@
 package db
 
 import (
+	"database/sql"
+	"errors"
 	"github.com/go-touch/regin/app/db/model"
 	"github.com/go-touch/regin/app/db/query"
 	"regexp"
@@ -15,6 +17,7 @@ type Dao struct {
 	table *model.Table
 	query query.BaseQuery
 	isSQL bool
+	isTx  bool
 }
 
 // 注册model
@@ -48,9 +51,41 @@ func Model(userModel interface{}) *Dao {
 	}
 }
 
-// 执行SQL
-func (d *Dao) Query(sql string, args ...interface{}) (result interface{}, err error) {
-	return d.query.Query(sql, args...)
+// 执行SQL - 查询一条数据
+func (d *Dao) QueryRow(sql string, args ...interface{}) *AnyValue {
+	defer d.reset()
+	sqlArray := strings.Split(sql, " ")
+	if sqlArray[0] == "SELECT" {
+		sqlRow := d.query.QueryRow(sql, args...)
+		return d.parserRow(sqlRow)
+	}
+	return Eval(errors.New("this sql is illegal,Please check it"))
+}
+
+// 执行SQL - 增删改查
+func (d *Dao) Query(sql string, args ...interface{}) *AnyValue {
+	defer d.reset()
+	sqlArray := strings.Split(sql, " ")
+	switch strings.ToUpper(sqlArray[0]) {
+	case "SELECT":
+		sqlRows, err := d.query.QueryAll(sql, args...)
+		if err != nil {
+			return Eval(err)
+		}
+		return d.parserRows(sqlRows)
+	case "INSERT", "UPDATE", "DELETE":
+		sqlResult, err := d.query.Exec(sql, args...)
+		if err != nil {
+			return Eval(err)
+		}
+		return Eval(sqlResult)
+	}
+	return Eval(errors.New("this sql is illegal, Please check it"))
+}
+
+// 获取查询构造器
+func (d *Dao) GetQuery() query.BaseQuery {
+	return d.query
 }
 
 // 设置表名
@@ -101,8 +136,7 @@ func (d *Dao) Where(field string, value interface{}, linkSymbol ...string) *Dao 
 		expr = append(expr, inValue)
 		value = newValue
 	} else {
-		expr = append(expr, "=")
-		expr = append(expr, "?")
+		expr = append(expr, "=", "?")
 	}
 	d.query.Where(strings.Join(expr, " "), value, linkSymbol...)
 	return d
@@ -173,7 +207,9 @@ func (d *Dao) FetchRow(userFunc ...UserFunc) *AnyValue {
 	if d.isSQL {
 		return Eval(d.query.GetSql())
 	}
-	return d.parserRow()
+	// Get row.
+	sqlRow := d.query.FetchRow()
+	return d.parserRow(sqlRow)
 }
 
 // 查询多条记录
@@ -183,22 +219,12 @@ func (d *Dao) FetchAll(userFunc ...UserFunc) *AnyValue {
 	if d.isSQL {
 		return Eval(d.query.GetSql())
 	}
-	return d.parserRows()
-}
-
-// Common SELECT part.
-func (d *Dao) fetch(userFunc ...UserFunc) *AnyValue {
-	_ = d.query.SetSqlType("SELECT")
-	// 执行过程
-	if userFunc != nil {
-		userFunc[0](d)
+	// Get rows.
+	sqlRows, err := d.query.FetchAll()
+	if err != nil {
+		return Eval(err)
 	}
-	// 字段处理
-	if d.query.GetField().GetExpr() == "" {
-		d.query.Field(d.table.GetTableFields())
-	}
-	_ = d.query.SetSql() // SQL处理
-	return nil
+	return d.parserRows(sqlRows)
 }
 
 // 插入记录
@@ -217,6 +243,45 @@ func (d *Dao) Update(userFunc ...UserFunc) *AnyValue {
 func (d *Dao) Delete(userFunc ...UserFunc) *AnyValue {
 	defer d.reset()
 	return d.modify("DELETE", userFunc...)
+}
+
+// 事务接管
+func (d *Dao) Tx(dao *Dao) *Dao {
+	if tx := dao.GetQuery().GetTx(); tx != nil {
+		d.isTx = true
+		d.GetQuery().SetTx(tx)
+	}
+	return d
+}
+
+// 开启事务
+func (d *Dao) Begin() {
+	d.query.Begin()
+}
+
+// 提交事务
+func (d *Dao) Commit() {
+	d.query.Commit()
+}
+
+// 回滚事务
+func (d *Dao) Rollback() {
+	d.query.Rollback()
+}
+
+// Common SELECT part.
+func (d *Dao) fetch(userFunc ...UserFunc) *AnyValue {
+	_ = d.query.SetSqlType("SELECT")
+	// 执行过程
+	if userFunc != nil {
+		userFunc[0](d)
+	}
+	// 字段处理
+	if d.query.GetField().GetExpr() == "" {
+		d.query.Field(d.table.GetTableFields())
+	}
+	_ = d.query.SetSql() // SQL处理
+	return nil
 }
 
 // 执行过程
@@ -240,9 +305,8 @@ func (d *Dao) modify(sType string, userFunc ...UserFunc) *AnyValue {
 }
 
 // 解析单行记录
-func (d *Dao) parserRow() *AnyValue {
+func (d *Dao) parserRow(sqlRow *sql.Row) *AnyValue {
 	column := d.query.GetField().GetNameArray()
-	sqlRow := d.query.FetchRow()
 	// 接收参数
 	args := make([]interface{}, len(column))
 	for k := range args {
@@ -252,7 +316,7 @@ func (d *Dao) parserRow() *AnyValue {
 	row := make(map[string]interface{})
 	err := sqlRow.Scan(args...)
 	if err != nil {
-		if regexp.MustCompile("no rows in result set").FindString(err.Error()) != "" {
+		if regexp.MustCompile("no rows in result set"+"").FindString(err.Error()) != "" {
 			return Eval(row)
 		}
 		return Eval(err)
@@ -265,31 +329,24 @@ func (d *Dao) parserRow() *AnyValue {
 }
 
 // 解析多行记录
-func (d *Dao) parserRows() *AnyValue {
-	// 返回字段的数组
-	rows, err := d.query.FetchAll()
-	if err != nil {
-		return Eval(err)
-	}
-	defer func() {
-		_ = rows.Close() // 关闭连接
-	}()
+func (d *Dao) parserRows(sqlRows *sql.Rows) *AnyValue {
+	defer func() { _ = sqlRows.Close() }()
 	// 获取字段
-	columns, err2 := rows.Columns()
+	columns, err2 := sqlRows.Columns()
 	if err2 != nil {
 		return Eval(err2)
 	}
 	// 迭代后者的 Next() 方法，然后使用 Scan() 方法给对应类型变量赋值，以便取出结果，最后再把结果集关闭（释放连接）
 	list := make([]map[string]interface{}, 0)
 	length := len(columns) // 字段数组长度
-	for rows.Next() {
+	for sqlRows.Next() {
 		// 接收参数
 		args := make([]interface{}, length)
 		for k := range args {
 			args[k] = &args[k]
 		}
 		// 数据行接收
-		if err := rows.Scan(args...); err != nil {
+		if err := sqlRows.Scan(args...); err != nil {
 			Eval(err)
 		}
 		// 数据赋值
@@ -306,4 +363,8 @@ func (d *Dao) parserRows() *AnyValue {
 func (d *Dao) reset() {
 	d.isSQL = false
 	_ = d.query.Reset()
+	if d.isTx == true {
+		d.isTx = false
+		d.query.UnsetTx()
+	}
 }

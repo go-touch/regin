@@ -9,10 +9,12 @@ type BaseQuery interface {
 	Clone() BaseQuery
 	Reset() error
 	SetDb(db *sql.DB)
+	SetTx(tx *sql.Tx)
+	UnsetTx()
+	GetTx() *sql.Tx
 	Begin()    // Begin starts a transaction.
 	Commit()   // Commit commits the transaction.
 	Rollback() // Rollback aborts the transaction.
-	Query(sql string, args ...interface{}) (result interface{}, err error)
 	QueryRow(sql string, args ...interface{}) *sql.Row
 	QueryAll(sql string, args ...interface{}) (*sql.Rows, error)
 	Exec(sql string, args ...interface{}) (sql.Result, error)
