@@ -55,7 +55,7 @@ func Model(userModel interface{}) *Dao {
 func (d *Dao) QueryRow(sql string, args ...interface{}) *AnyValue {
 	defer d.reset()
 	sqlArray := strings.Split(sql, " ")
-	if sqlArray[0] == "SELECT" {
+	if strings.ToUpper(sqlArray[0]) == "SELECT" {
 		sqlRow := d.query.QueryRow(sql, args...)
 		return d.parserRow(sqlRow)
 	}

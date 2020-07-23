@@ -63,7 +63,7 @@ func main() {
 		dao.Limit(1)
 	})
 	fmt.Printf("ret2的值为:%v\n", ret2)
-	
+
 	// 查询
 	dao2 := db.Model(&AdminRoles2{}).Tx(dao)
 	fmt.Printf("dao2的值为:%v\n", dao2.GetQuery())
