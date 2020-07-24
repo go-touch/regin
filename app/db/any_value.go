@@ -186,6 +186,28 @@ func (av *AnyValue) ToAnyMap() map[string]interface{} {
 	return rValue
 }
 
+// 转换成 []map[string]interface
+func (av *AnyValue) ToAnyMapSlice() []map[string]interface{} {
+	rValue := make([]map[string]interface{}, 0)
+	switch av.getType() {
+	case AnyMapSlice:
+		for _, value := range av.value.([]map[string]interface{}) {
+			subValue := map[string]interface{}{}
+			for k, v := range value {
+				if dv, ok := v.([]byte); ok {
+					subValue[k] = string(dv)
+				} else if dv, ok := v.(int64); ok {
+					subValue[k] = int(dv)
+				} else if v == nil {
+					subValue[k] = ""
+				}
+			}
+			rValue = append(rValue, subValue)
+		}
+	}
+	return rValue
+}
+
 // 转换成 []map[string]string
 func (av *AnyValue) ToStringMapSlice() []map[string]string {
 	rValue := make([]map[string]string, 0)
@@ -204,7 +226,6 @@ func (av *AnyValue) ToStringMapSlice() []map[string]string {
 			}
 			rValue = append(rValue, subValue)
 		}
-		return rValue
 	}
 	return rValue
 }
