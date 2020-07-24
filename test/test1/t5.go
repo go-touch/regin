@@ -46,8 +46,16 @@ func main() {
 			"maxOpenConn":    "1",
 		},
 	})
-
+	// 查询
 	dao := db.Model(&AdminUsers2{})
+	ret1 := dao.QueryRow("SELECT count(*) as num from admin_users")
+	fmt.Printf("ret1的值为:%v\n", ret1)
+
+	a := ret1.ToStringMap()
+	fmt.Printf("值:%v\n", a)
+	fmt.Printf("类型:%T\n", ret1.ToValue())
+
+	/*dao := db.Model(&AdminUsers2{})
 	fmt.Printf("dao的值为:%v\n", dao.GetQuery())
 
 	// 开启事务
@@ -94,5 +102,5 @@ func main() {
 
 	dao.Commit()
 
-	fmt.Printf("dao的值为:%v\n", dao.GetQuery())
+	fmt.Printf("dao的值为:%v\n", dao.GetQuery())*/
 }

@@ -57,10 +57,10 @@ func (d *Dao) QueryRow(sql string, args ...interface{}) *AnyValue {
 	if err := anyValue.ToError(); err != nil {
 		return Eval(err)
 	}
-	if stringStringSlice := anyValue.ToStringMapSlice(); len(stringStringSlice) == 0 {
-		return Eval(map[string]string{})
+	if anyMapSlice := anyValue.ToAnyMapSlice(); len(anyMapSlice) == 0 {
+		return Eval(map[string]interface{}{})
 	} else {
-		return Eval(stringStringSlice[0])
+		return Eval(anyMapSlice[0])
 	}
 }
 

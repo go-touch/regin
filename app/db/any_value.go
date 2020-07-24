@@ -152,11 +152,15 @@ func (av *AnyValue) ToString() string {
 
 // 转换成 map[string]string
 func (av *AnyValue) ToStringMap() map[string]string {
-	rValue := make(map[string]string, 0)
+	rValue := map[string]string{}
 	switch av.getType() {
+	case StringMap:
+		rValue = av.value.(map[string]string)
 	case AnyMap:
 		for key, value := range av.value.(map[string]interface{}) {
-			if dv, ok := value.([]byte); ok {
+			if dv, ok := value.(string); ok {
+				rValue[key] = dv
+			} else if dv, ok := value.([]byte); ok {
 				rValue[key] = string(dv)
 			} else if dv, ok := value.(int64); ok {
 				rValue[key] = strconv.Itoa(int(dv))
