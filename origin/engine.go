@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-touch/regin/base"
 	"github.com/unrolled/secure"
+	"net/http"
 )
 
 type EngineDispatcher struct {
@@ -23,6 +24,21 @@ func init() {
 
 // Run HttpServer
 func (ed *EngineDispatcher) HttpServer(server base.WebServer) {
+	// 解决跨域
+	ed.origin.Use(func(c *gin.Context) {
+		method := c.Request.Method
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token")
+		c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
+		c.Header("Access-Control-Allow-Credentials", "true")
+		//放行所有OPTIONS方法
+		if method == "OPTIONS" {
+			c.AbortWithStatus(http.StatusNoContent)
+		}
+		// 处理请求
+		c.Next()
+	})
 	// 注册路由
 	ed.origin.Any("/:module/:controller/:action", func(c *gin.Context) {
 		// Error catch.
