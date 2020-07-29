@@ -32,25 +32,28 @@ func (ed *EngineDispatcher) HttpServer(server base.WebServer) {
 		c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 		c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
 		c.Header("Access-Control-Allow-Credentials", "true")
-		//放行所有OPTIONS方法
+		// 放行所有OPTIONS方法
 		if method == "OPTIONS" {
 			c.AbortWithStatus(http.StatusNoContent)
 		}
 		// 处理请求
 		c.Next()
 	})
+
 	// 注册路由
 	ed.origin.Any("/:module/:controller/:action", func(c *gin.Context) {
 		// Error catch.
 		defer func() {
-			if err := server.GetError(); err != nil {
+			if r := recover(); r != nil {
+				// Error catch.
+				server.ErrorCatch(Error(r))
+				// Exception response.
 				result := base.ResultInvoker.CreateJson(200, "")
 				result.SetData("code", 10000)
-				result.SetData("msg", err.Error())
+				result.SetData("msg", "There's something wrong with the server.")
 				_ = ed.response.Output(c, result)
 			}
 		}()
-		defer server.ErrorCatch()
 		_ = ed.response.Output(c, server.Work(base.RequestInvoker.Factory(c)))
 	})
 
@@ -58,14 +61,16 @@ func (ed *EngineDispatcher) HttpServer(server base.WebServer) {
 	ed.origin.Any("/:module/:controller", func(c *gin.Context) {
 		// Error catch.
 		defer func() {
-			if err := server.GetError(); err != nil {
+			if r := recover(); r != nil {
+				// Error catch.
+				server.ErrorCatch(Error(r))
+				// Exception response.
 				result := base.ResultInvoker.CreateJson(200, "")
 				result.SetData("code", 10000)
-				result.SetData("msg", err.Error())
+				result.SetData("msg", "There's something wrong with the server.")
 				_ = ed.response.Output(c, result)
 			}
 		}()
-		defer server.ErrorCatch()
 		_ = ed.response.Output(c, server.Work(base.RequestInvoker.Factory(c)))
 	})
 	_ = ed.origin.Run(server.Addr()) // Run HttpServer

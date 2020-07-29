@@ -1,11 +1,9 @@
 package app
 
 import (
-	"errors"
 	"github.com/go-touch/regin/app/service"
 	"github.com/go-touch/regin/base"
 	"github.com/go-touch/regin/utils"
-	"runtime"
 )
 
 type Http struct {
@@ -57,23 +55,9 @@ func (h *Http) Addr() string {
 	return h.addrAndPort
 }
 
-func (h *Http) GetError() error {
-	return h.err
-}
-
-func (h *Http) ErrorCatch() {
-	if r := recover(); r != nil {
-		var array [4096]byte
-		buf := array[:]
-		runtime.Stack(buf, false)
-		stackString := h.GetException().Stack(r, buf)
-
-		// Handle error log.
-		if openLog := h.GetConfig("server.error.log").ToBool(); openLog == true {
-			_ = h.GetLogger().Record(stackString)
-		}
-
-		// Set error message.
-		h.err = errors.New("there's something wrong with the system")
+// Error catch.
+func (h *Http) ErrorCatch(err error) {
+	if openLog := h.GetConfig("server.error.log").ToBool(); openLog == true {
+		_ = h.GetLogger().Record(err.Error())
 	}
 }

@@ -5,6 +5,5 @@ type WebServer interface {
 	Work(*Request) *Result
 	Addr() string
 	SSLCertPath() string
-	ErrorCatch()
-	GetError() error
+	ErrorCatch(error)
 }

@@ -14,14 +14,18 @@ func NewHttps() *Https {
 }
 
 //
-func (this *Https) Work(request *base.Request) base.Result {
-	return base.Result{}
+func (hs *Https) Work(request *base.Request) *base.Result {
+	return &base.Result{}
 }
 
-func (this *Https) Addr() string {
-	return this.addr
+func (hs *Https) Addr() string {
+	return hs.addr
 }
 
-/*func (this *Https) SSLCertPath() string {
-	return this.addr
-}*/
+func (hs *Https) SSLCertPath() string {
+	return hs.addr
+}
+
+func (hs *Https) ErrorCatch() error {
+	return nil
+}

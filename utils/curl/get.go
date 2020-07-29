@@ -2,7 +2,7 @@ package curl
 
 import (
 	"bytes"
-	"github.com/go-touch/regin/utils/multitype"
+	"github.com/go-touch/mtype"
 	"io/ioutil"
 	"net/http"
 	url2 "net/url"
@@ -28,7 +28,7 @@ func (gc *GetCaller) Header(header map[string]string) {
 }
 
 // 发送Get请求
-func (gc *GetCaller) Call(url string, args ...map[string]interface{}) *multitype.AnyValue {
+func (gc *GetCaller) Call(url string, args ...map[string]interface{}) *mtype.AnyValue {
 	// 参数处理
 	param := url2.Values{}
 	if args != nil {
@@ -42,7 +42,7 @@ func (gc *GetCaller) Call(url string, args ...map[string]interface{}) *multitype
 	}
 	parserUrl, err := url2.ParseRequestURI(url)
 	if err != nil {
-		return multitype.Eval(err)
+		return mtype.Eval(err)
 	} else {
 		parserUrl.RawQuery = param.Encode()
 		url = parserUrl.String()
@@ -50,7 +50,7 @@ func (gc *GetCaller) Call(url string, args ...map[string]interface{}) *multitype
 	// 创建request
 	request, err2 := http.NewRequest(gc.method, url, nil)
 	if err2 != nil {
-		return multitype.Eval(err2)
+		return mtype.Eval(err2)
 	}
 	if len(gc.header) > 0 {
 		for key, value := range gc.header {
@@ -60,15 +60,15 @@ func (gc *GetCaller) Call(url string, args ...map[string]interface{}) *multitype
 	// 发送一个GET请求
 	resp, err3 := http.DefaultClient.Do(request)
 	if err3 != nil {
-		return multitype.Eval(err3)
+		return mtype.Eval(err3)
 	}
 	defer func() { _ = resp.Body.Close() }()
 	// 响应数据处理
 	respData, err4 := ioutil.ReadAll(resp.Body)
 	if err4 != nil {
-		return multitype.Eval(err4)
+		return mtype.Eval(err4)
 	} else {
 		respData = bytes.TrimPrefix(respData, []byte("\xef\xbb\xbf"))
 	}
-	return multitype.Eval(respData)
+	return mtype.Eval(respData)
 }
