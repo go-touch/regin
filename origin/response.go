@@ -27,6 +27,8 @@ func (rh *ResponseHandler) Output(c *gin.Context, result *base.Result) error {
 		return rh.OutputJson(c, result)
 	case "Html":
 		return rh.OutputHtml(c, result)
+	case "Stream":
+		return rh.OutputStream(c, result)
 	}
 	return nil
 }
@@ -86,6 +88,36 @@ func (rh *ResponseHandler) OutputHtml(c *gin.Context, result *base.Result) error
 		result.SetData("msg", result.Msg)
 	default:
 		result.SetData("msg", "请求成功")
+	}
+
+	// 输出
+	c.JSON(result.Status, result.Data)
+	return nil
+}
+
+// 输出Html
+func (rh *ResponseHandler) OutputStream(c *gin.Context, result *base.Result) error {
+	// 响应
+	switch result.Status {
+	case 404:
+		result.SetData("code", 404)
+		result.SetData("msg", result.Msg)
+	case 500:
+		result.SetData("code", 500)
+		result.SetData("msg", result.Msg)
+	default:
+		result.SetData("msg", "请求成功")
+	}
+
+	// 用户自定义输出
+	if result.UserOutput != nil {
+		c.Header("content-type", "image/png")
+		if ok := result.UserOutput(c.Writer); !ok {
+			result.SetData("code", 999)
+			result.SetData("msg", "system error.")
+		} else {
+			return nil
+		}
 	}
 
 	// 输出
