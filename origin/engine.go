@@ -50,7 +50,7 @@ func (ed *EngineDispatcher) HttpServer(server base.WebServer) {
 				server.ErrorCatch(Error(r))
 
 				// 打印
-				fmt.Println(r)
+				fmt.Println(Error(r))
 
 				// Exception response.
 				result := base.ResultInvoker.CreateJson(200, "")
@@ -71,7 +71,7 @@ func (ed *EngineDispatcher) HttpServer(server base.WebServer) {
 				server.ErrorCatch(Error(r))
 
 				// 打印
-				fmt.Println(r)
+				fmt.Println(Error(r))
 
 				// Exception response.
 				result := base.ResultInvoker.CreateJson(200, "")
