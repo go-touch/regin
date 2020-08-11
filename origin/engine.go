@@ -1,6 +1,7 @@
 package origin
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-touch/regin/base"
 	"github.com/unrolled/secure"
@@ -47,6 +48,10 @@ func (ed *EngineDispatcher) HttpServer(server base.WebServer) {
 			if r := recover(); r != nil {
 				// Error catch.
 				server.ErrorCatch(Error(r))
+
+				// 打印
+				fmt.Println(r)
+
 				// Exception response.
 				result := base.ResultInvoker.CreateJson(200, "")
 				result.SetData("code", 10000)
@@ -64,6 +69,10 @@ func (ed *EngineDispatcher) HttpServer(server base.WebServer) {
 			if r := recover(); r != nil {
 				// Error catch.
 				server.ErrorCatch(Error(r))
+
+				// 打印
+				fmt.Println(r)
+
 				// Exception response.
 				result := base.ResultInvoker.CreateJson(200, "")
 				result.SetData("code", 10000)
