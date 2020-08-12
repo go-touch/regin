@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -64,12 +65,13 @@ func (pc *PostCaller) IoReader(args ...interface{}) io.Reader {
 		return nil
 	}
 	if mtype.GetType(args[0]) == mtype.TString {
-		ioReader = strings.NewReader(args[0].(string))
+		param := url.QueryEscape(args[0].(string))
+		ioReader = strings.NewReader(param)
 	} else {
 		stringMap := mtype.Eval(args[0]).ToStringMap()
 		var param []string
 		for k, v := range stringMap {
-			param = append(param, k+"="+v)
+			param = append(param, k+"="+url.QueryEscape(v))
 		}
 		ioReader = strings.NewReader(strings.Join(param, "&"))
 	}
