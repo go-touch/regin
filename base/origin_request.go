@@ -106,6 +106,27 @@ func (r *Request) initPost() error {
 	return nil
 }
 
+// GetPostFormMap returns a map for a given form key, plus a boolean value
+// whether at least one value exists for the given key.
+func (r *Request) GetPostFormMap(key string) (map[string]string, bool) {
+	return r.get(r.PostForm, key)
+}
+
+// get is an internal method and returns a map which satisfy conditions.
+func (r *Request) get(m map[string][]string, key string) (map[string]string, bool) {
+	dicts := make(map[string]string)
+	exist := false
+	for k, v := range m {
+		if i := strings.IndexByte(k, '['); i >= 1 && k[0:i] == key {
+			if j := strings.IndexByte(k[i+1:], ']'); j >= 1 {
+				exist = true
+				dicts[k[i+1:][:j]] = v[0]
+			}
+		}
+	}
+	return dicts, exist
+}
+
 // Get Http request method
 func (r *Request) GetMethod() string {
 	return r.Method
