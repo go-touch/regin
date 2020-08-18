@@ -97,6 +97,13 @@ func (rh *ResponseHandler) OutputHtml(c *gin.Context, result *base.Result) error
 
 // 输出Html
 func (rh *ResponseHandler) OutputStream(c *gin.Context, result *base.Result) error {
+	// 头信息
+	if header := result.GetHeader(); len(header) > 0 {
+		for key, value := range header {
+			c.Header(key, value)
+		}
+	}
+
 	// 响应
 	switch result.Status {
 	case 404:
