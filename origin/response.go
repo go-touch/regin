@@ -97,13 +97,6 @@ func (rh *ResponseHandler) OutputHtml(c *gin.Context, result *base.Result) error
 
 // 输出Html
 func (rh *ResponseHandler) OutputStream(c *gin.Context, result *base.Result) error {
-	// 头信息
-	if header := result.GetHeader(); len(header) > 0 {
-		for key, value := range header {
-			c.Header(key, value)
-		}
-	}
-
 	// 响应
 	switch result.Status {
 	case 404:
@@ -116,18 +109,18 @@ func (rh *ResponseHandler) OutputStream(c *gin.Context, result *base.Result) err
 		result.SetData("msg", "请求成功")
 	}
 
-	// 用户自定义输出
-	if result.UserOutput != nil {
-		c.Header("content-type", "image/png")
-		if ok := result.UserOutput(c.Writer); !ok {
-			result.SetData("code", 999)
-			result.SetData("msg", "system error.")
-		} else {
-			return nil
+	// 头信息
+	if header := result.GetHeader(); len(header) > 0 {
+		for key, value := range header {
+			c.Header(key, value)
 		}
 	}
 
-	// 输出
-	c.JSON(result.Status, result.Data)
+	// 用户自定义输出
+	if userFunc := result.GetOutput(); userFunc != nil {
+		userFunc(c.Writer)
+	} else { // 默认输出
+		c.JSON(result.Status, result.Data)
+	}
 	return nil
 }

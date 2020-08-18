@@ -4,13 +4,13 @@ import "io"
 
 /**************************************** 数据类型 - 结构体Result ****************************************/
 // 用户输出函数
-type UserOutput func(writer io.Writer) bool
+type UserFuncOutput func(writer io.Writer)
 
 // 响应结构体
 type Result struct {
 	Type       string            // 可选值为:String、Json、Html、Stream
 	header     map[string]string // 头信息
-	UserOutput UserOutput        // 用户可控制输出函数
+	userOutput UserFuncOutput    // 用户可控制输出函数
 	Page       string            // 响应页面(Type = Html时必填)
 	Status     int               // 状态码 200正常状态
 	Msg        string            // 提示消息
@@ -32,6 +32,16 @@ func (r *Result) SetHeader(key string, value string) {
 // 获取 header
 func (r *Result) GetHeader() map[string]string {
 	return r.header
+}
+
+// 用户自定义输出
+func (r *Result) SetOutput(userFunc UserFuncOutput) {
+	r.userOutput = userFunc
+}
+
+// 获取用户自定义输出
+func (r *Result) GetOutput() UserFuncOutput {
+	return r.userOutput
 }
 
 // Business data method.
