@@ -34,35 +34,34 @@ func init() {
 
 // Create an new Request.
 func (r *Request) Factory(c *gin.Context) *Request {
-	request := &Request{Request: c.Request}
-	_ = request.init()
+	request := &Request{
+		Request:       c.Request,
+		Storage:       &mtype.AnyMap{},
+		cookieMap:     map[string]string{},
+		paramMap:      map[string]string{},
+		getMap:        map[string]string{},
+		postMap:       &mtype.AnyMap{},
+		postFileSlice: []*multipart.FileHeader{},
+		rawSlice:      make([]byte, 0),
+	}
 	_ = request.initParam(c.Params)
 	_ = request.initGet()
 	_ = request.initPost()
 	return request
 }
 
-// Init data.
-func (r *Request) init() error {
-	r.Storage = &mtype.AnyMap{}
-	return nil
-}
-
 // Init Param data.
 func (r *Request) initParam(params gin.Params) error {
-	r.paramMap = StringMap{}
-	for _, entry := range params {
-		r.paramMap[entry.Key] = entry.Value
+	for _, element := range params {
+		r.paramMap[element.Key] = element.Value
 	}
 	return nil
 }
 
 // Init GET data.
 func (r *Request) initGet() error {
-	r.getMap = StringMap{}
-	paramGroup := r.Request.URL.Query()
-
-	for key, value := range paramGroup {
+	params := r.Request.URL.Query()
+	for key, value := range params {
 		r.getMap[key] = value[len(value)-1]
 	}
 	return nil
@@ -70,61 +69,40 @@ func (r *Request) initGet() error {
 
 // Init POST data.
 func (r *Request) initPost() error {
-	r.postMap = &mtype.AnyMap{}
-	if r.Method != "POST" {
-		return r.error
-	}
-
-	// Handle data by Content-Type.
-	ct := r.Header.Get("Content-Type")
-	if strings.Contains(ct, "/x-www-form-urlencoded") || strings.Contains(ct, "/form-data") {
-		if r.error = r.ParseMultipartForm(defaultMultipartMemory); r.error != nil && r.error != http.ErrNotMultipart {
-			return r.error
-		}
-		for key, value := range r.PostForm {
-			if len(value) == 1 {
-				r.postMap.Set(key, value[0])
-			} else {
-				r.postMap.Set(key, value)
-			}
-		}
-		return nil
-	} else { // Handle data by other Content-Type.
-		if r.rawSlice, r.error = ioutil.ReadAll(r.Body); r.error != nil {
-			return r.error
-		}
-		if strings.Contains(ct, "/json") { // Content-Type is Json.
-			if r.error = json.Unmarshal(r.rawSlice, r.postMap); r.error != nil {
+	// When Request method is POST then parser data.
+	if r.Method == "POST" {
+		// Handle data by Content-Type.
+		ct := r.Header.Get("Content-Type")
+		if strings.Contains(ct, "/x-www-form-urlencoded") || strings.Contains(ct, "/form-data") {
+			if r.error = r.ParseMultipartForm(defaultMultipartMemory); r.error != nil && r.error != http.ErrNotMultipart {
 				return r.error
 			}
-		} else if strings.Contains(ct, "/xml") { // Content-Type is Xml.
-			if r.error = xml.Unmarshal(r.rawSlice, r.postMap); r.error != nil {
+			for key, value := range r.PostForm {
+				if len(value) == 1 {
+					(*r.postMap)[key] = value[0]
+				} else {
+					(*r.postMap)[key] = value
+				}
+			}
+			// Parser postMap data when Contains [].
+			*r.postMap = r.parserPostMap(*r.postMap)
+			return nil
+		} else { // Handle data by other Content-Type.
+			if r.rawSlice, r.error = ioutil.ReadAll(r.Body); r.error != nil {
 				return r.error
+			}
+			if strings.Contains(ct, "/json") { // Content-Type is Json.
+				if r.error = json.Unmarshal(r.rawSlice, r.postMap); r.error != nil {
+					return r.error
+				}
+			} else if strings.Contains(ct, "/xml") { // Content-Type is Xml.
+				if r.error = xml.Unmarshal(r.rawSlice, r.postMap); r.error != nil {
+					return r.error
+				}
 			}
 		}
 	}
 	return nil
-}
-
-// GetPostFormMap returns a map for a given form key, plus a boolean value
-// whether at least one value exists for the given key.
-func (r *Request) GetPostFormMap(key string) (map[string]string, bool) {
-	return r.get(r.PostForm, key)
-}
-
-// get is an internal method and returns a map which satisfy conditions.
-func (r *Request) get(m map[string][]string, key string) (map[string]string, bool) {
-	dicts := make(map[string]string)
-	exist := false
-	for k, v := range m {
-		if i := strings.IndexByte(k, '['); i >= 1 && k[0:i] == key {
-			if j := strings.IndexByte(k[i+1:], ']'); j >= 1 {
-				exist = true
-				dicts[k[i+1:][:j]] = v[0]
-			}
-		}
-	}
-	return dicts, exist
 }
 
 // Get Http request method
@@ -150,7 +128,7 @@ func (r *Request) Param(key string, defaultValue ...string) string {
 }
 
 // Get param array.
-func (r *Request) ParamAll() StringMap {
+func (r *Request) ParamAll() map[string]string {
 	return r.paramMap
 }
 
@@ -167,24 +145,12 @@ func (r *Request) Get(key string, defaultValue ...string) string {
 }
 
 // Get param array.
-func (r *Request) GetAll() StringMap {
+func (r *Request) GetAll() map[string]string {
 	return r.getMap
 }
 
 // POST param.
-func (r *Request) Post(key string, defaultValue ...interface{}) interface{} {
-	var val interface{}
-	if defaultValue != nil {
-		val = defaultValue[0]
-	}
-	if value, ok := (*r.postMap)[key]; ok {
-		return value
-	}
-	return val
-}
-
-// POST param array.
-func (r *Request) PostAll() *mtype.AnyMap {
+func (r *Request) Post() *mtype.AnyMap {
 	return r.postMap
 }
 
@@ -201,4 +167,64 @@ func (r *Request) PostFile(name string) []*multipart.FileHeader {
 // 获取元数据
 func (r *Request) Raw() []byte {
 	return r.rawSlice
+}
+
+// Convert POST data to struct.
+func (r *Request) ToStruct(object interface{}, method ...string) error {
+	byteSlice := make([]byte, 0)
+
+	// Handle data by method.
+	m := "post"
+	if method != nil {
+		m = strings.ToLower(method[0])
+	}
+	if m == "get" {
+		if data, err := json.Marshal(r.getMap); err != nil {
+			return err
+		} else {
+			byteSlice = data
+		}
+	} else if m == "post" {
+		if len(r.rawSlice) > 0 {
+			byteSlice = r.rawSlice
+		} else if data, err := json.Marshal(r.postMap); err != nil {
+			return err
+		} else {
+			byteSlice = data
+		}
+	}
+
+	// Parse []byte to struct.
+	err := json.Unmarshal(byteSlice, object)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Parser postMap data.
+func (r *Request) parserPostMap(anyMap map[string]interface{}) map[string]interface{} {
+	tmpMap := map[string]interface{}{}
+	for key, value := range anyMap {
+		i := strings.IndexByte(key, '[')
+		j := strings.IndexByte(key, ']')
+
+		if i >= 1 && j >= 1 {
+			trimKey := strings.Trim(key, "]")
+			k := trimKey[0:i]
+			subK := trimKey[i+1:]
+			if _, ok := tmpMap[k]; !ok {
+				tmpMap[k] = map[string]interface{}{
+					subK: value,
+				}
+			} else {
+				tmpMap[k].(map[string]interface{})[subK] = value
+			}
+			delete(anyMap, key)
+		}
+	}
+	for key, value := range tmpMap {
+		anyMap[key] = value
+	}
+	return anyMap
 }

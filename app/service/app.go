@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/go-touch/mtype"
 	"github.com/go-touch/regin/app/core"
 	"github.com/go-touch/regin/base"
 )
@@ -32,7 +33,7 @@ func init() {
 }
 
 // Get application ConfigValue.
-func (a *Application) GetConfig(args ...string) *base.AnyValue {
+func (a *Application) GetConfig(args ...string) *mtype.AnyValue {
 	return a.config.GetConfig(args...)
 }
 

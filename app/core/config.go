@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/go-touch/regin/base"
+	"github.com/go-touch/mtype"
 	"github.com/go-touch/regin/utils"
 	"strconv"
 	"strings"
@@ -35,16 +35,16 @@ func (c *Config) Init(configPath string) {
 }
 
 // Get config.
-func (c *Config) GetConfig(args ...string) *base.AnyValue {
+func (c *Config) GetConfig(args ...string) *mtype.AnyValue {
 	// If args is nil
 	if args == nil {
-		return base.Eval(c.config)
+		return mtype.Eval(c.config)
 	}
 
 	// Parser args
 	argsGroup := strings.Split(args[0], ".")
 	if argsGroup[0] == "" {
-		return base.Eval(c.config)
+		return mtype.Eval(c.config)
 	}
 
 	// Walk config.
@@ -71,5 +71,5 @@ func (c *Config) GetConfig(args ...string) *base.AnyValue {
 			break
 		}
 	}
-	return base.Eval(config)
+	return mtype.Eval(config)
 }
