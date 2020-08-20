@@ -12,7 +12,6 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 - [Utils工具](#Utils工具)
 	- config文件解析器(支持json、ini)
 	- 加密算法
-	- 类型处理(自定义类型、基本类型转换)
 	- 验证器
 	- curl
 	- 文件操作
@@ -29,6 +28,7 @@ regin是一款基于go-gin框架封装的web框架,用于快速构建web应用�
 	$ go get github.com/go-sql-driver/mysql
 	$ go get github.com/garyburd/redigo/redis
 	$ go get gopkg.in/ini.v1
+	$ go get github.com/go-touch/mtype
 #### 4. 如使用go mod包依赖管理工具, 请参考下面命令
 ##### Windows 下开启 GO111MODULE 并设置 GOPROXY 的命令为：
 	$ set GO111MODULE=on
@@ -188,19 +188,25 @@ func (this *MysqlSelect) Exec(request *base.Request) *base.Result {
 ```
 #### *base.Request实例(封装param、get、post方法,自动json、xml解析)
 ##### 获取请求方式
-	GetMethod() string
+	func GetMethod() string
 ##### 获取error信息
-	GetError() error
-##### 获取pathinfo的路径信息. 参数key:路径名 defaultValue:默认值
-	Param(key string, defaultValue ...string)
-##### 获取pathinfo的路径map信息. 返回值为 base.StringMap(对应基础类型map[string]string)
-	ParamAll() StringMap
-##### 获取Post数据, json、xml数据也用此方法.返回值为 interface{}
-	Post(key string, defaultValue ...interface{}) (value interface{}, err error)
-##### 获取Post数据的map, json、xml数据也用此方法. 返回值为 base.AnyMap(对应基础类型map[string]interface{})
-	PostAll() (anyMap AnyMap, err error) 获取一个map[string]interface{}
-##### 获取上传文件io句柄. 返回值为 []*multipart.FileHeader
+	func GetError() error
+##### 获取pathinfo数据. 参数key:路径名 defaultValue:默认值
+	func Param(key string, defaultValue ...string)
+##### 获取pathinfo数据map. 返回值: map[string]string
+	func ParamAll() map[string]string
+##### 获取GET数据. 参数key:路径名 defaultValue:默认值
+	func (r *Request) Get(key string, defaultValue ...string) string
+##### 获取GET数据map. 返回值: map[string]string
+func GetAll() map[string]string
+##### 获取Post数据, json、xml等数据也用此方法. 返回值: *mtype.AnyMap(对应基础类型map[string]interface{} ,mtype更多使用可参考文档 https://github.com/go-touch/regin)
+	func Post() *mtype.AnyMap
+##### 获取上传文件io句柄. 返回值: []*multipart.FileHeader
 	PostFile(name string) []*multipart.FileHeader
+##### 获取POST元数据. 返回值: []byte
+	func (r *Request) Raw() []byte
+##### 映射请求数据为结构体. [参数]object: 要转换的结构体指针 method: 请求方式,默认post(可选参数).(内部采用json转换,可参考 encoding/json包的使用)
+	func (r *Request) ToStruct(object interface{}, method ...string) error
 ##### 更多方法使用 request 调用
 	...
 #### *base.Result实例(用于响应客户端)
@@ -249,47 +255,28 @@ func (r *Result) CreateHtml(page string, status int, msg string) *Result {
 ##### 快速获取一个可响应json的  *base.Result 实例
 	base.JsonResult() *Result
 ##### 修改业务数据即 *base.Result 的 Data 字段
-	(r *Result) SetData(key string, value interface{})
+	func (r *Result) SetData(key string, value interface{})
 ##### 获取业务数据即 *base.Result 的 Data 字段
-	(r *Result) GetData(key string) interface{} 
+	func (r *Result) GetData(key string) interface{} 
 #### *base.AnyValue值类型（用于数据转换,对于不确定类型interfa{}比较适用)
 ##### 获取 *base.AnyValue. 参数value:interface{}(可传任意值)
-	base.Eval(value interface{}) *AnyValue
+	func base.Eval(value interface{}) *AnyValue
 ##### 返回错误信息
-	(av *AnyValue) ToError() error
+	func (av *AnyValue) ToError() error
 ##### 返回原值
-	(av *AnyValue) ToValue() interface{}
+	func (av *AnyValue) ToValue() interface{}
 ##### 转成int类型
-	(av *AnyValue) ToInt() int
+	func (av *AnyValue) ToInt() int
 ##### 转成byte类型
-	(av *AnyValue) ToByte() byte
+	func (av *AnyValue) ToByte() byte
 ##### 转成string类型
-	(av *AnyValue) ToString() string
+	func (av *AnyValue) ToString() string
 ##### 转成bool类型
-	(av *AnyValue) ToBool() bool
+	func (av *AnyValue) ToBool() bool
 ##### 转成map[string]string类型
-	(av *AnyValue) ToStringMap() map[string]string
+	func (av *AnyValue) ToStringMap() map[string]string
 ##### 更多方法使用 *base.AnyValue 调用
 	...
-#### regin定义的数据类型 (业务中可直接使用,包名base)
-```go
-// 预定义常见数据类型
-type DataType interface {
-	Set(key string, value interface{})
-	Get(key string) *AnyValue
-}
-type AnyMap map[string]interface{}        // [MapType] key is string,value is 任意类型
-type StringMap map[string]string          // [MapType] key is string,value is string 类型
-type IntMap map[string]int                // [MapType] key is string,value is int 类型
-type StringSliceMap map[string][]string   // [MapType] key is string,value is string Slice 类型
-type GeneralMap map[string]AppAction      // [MapType] key is string,value is AppAction t类型
-type AnySlice []interface{}               // [SliceType] key is index,value为任意类型
-type StringMapSlice []map[string]string   // [SliceType] key is index,value为(key为string,value为string)的map
-type AnyMapSlice []map[string]interface{} // [SliceType] key is index,value为(key为string,value为任意类型)的map
-```
-```go
-Note: 部分值为 interface{} 的类型实现了 DataType 接口, 需要类型转换可通过Get方法获取到一个 *base.AnyValue
-```
 ### <a id="数据库">数据库</a>
 #### 配置项 xxx/config/dev/database.ini
 	[plus_center] // 配置分组,必填

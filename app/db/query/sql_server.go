@@ -103,10 +103,6 @@ func (ssq *SqlServerQuery) GetSql() string {
 	return ""
 }
 
-func (ssq *SqlServerQuery) ExecSql() {
-
-}
-
 // 更新一条记录
 func (ssq *SqlServerQuery) Update() *SqlServerQuery {
 	return ssq

@@ -174,17 +174,17 @@ func (r *Request) ToStruct(object interface{}, method ...string) error {
 	byteSlice := make([]byte, 0)
 
 	// Handle data by method.
-	m := "post"
+	m := "POST"
 	if method != nil {
-		m = strings.ToLower(method[0])
+		m = strings.ToUpper(method[0])
 	}
-	if m == "get" {
+	if m == "GET" {
 		if data, err := json.Marshal(r.getMap); err != nil {
 			return err
 		} else {
 			byteSlice = data
 		}
-	} else if m == "post" {
+	} else if m == "POST" {
 		if len(r.rawSlice) > 0 {
 			byteSlice = r.rawSlice
 		} else if data, err := json.Marshal(r.postMap); err != nil {
