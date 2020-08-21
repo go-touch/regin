@@ -33,14 +33,13 @@ func (l *Logger) GetFileName(logPath string, path ...string) string {
 }
 
 // 写入日志
-func (l *Logger) Writer(fileName string, content string) error {
+func (l *Logger) Writer(fileName string, content interface{}) error {
 	// 打开文件句柄
-	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE, 666)
-
+	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE, os.ModePerm)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// 日志文件格式:log包含时间及文件行数
 	logger := log.New(file, "", log.LstdFlags)

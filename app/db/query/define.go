@@ -33,13 +33,18 @@ type BaseQuery interface {
 	FetchRow() *sql.Row
 	FetchAll() (*sql.Rows, error)
 	Modify() (sql.Result, error)
+	GetDuration() Runtime
 }
 
 // 获取查询构造器
 func GetQueryBuilder(driverName string) BaseQuery {
 	switch driverName {
 	case "mysql":
-		return &MysqlQuery{}
+		return &MysqlQuery{
+			Combine: Combine{
+				Runtime: Runtime{},
+			},
+		}
 	case "sql_server":
 		return &SqlServerQuery{}
 	}

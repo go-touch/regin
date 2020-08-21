@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/go-touch/regin/app/core"
 	"github.com/go-touch/regin/app/service"
 	"github.com/go-touch/regin/base"
 	"github.com/go-touch/regin/utils"
@@ -58,6 +59,6 @@ func (h *Http) Addr() string {
 // Error catch.
 func (h *Http) ErrorCatch(err error) {
 	if openLog := h.GetConfig("server.error.log").ToBool(); openLog == true {
-		_ = h.GetLogger().Record(err.Error())
+		_ = h.GetLogger().Local(core.Error, err.Error())
 	}
 }

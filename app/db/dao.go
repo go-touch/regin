@@ -53,6 +53,7 @@ func Model(userModel interface{}) *Dao {
 
 // 执行SQL - 查询一条数据
 func (d *Dao) QueryRow(sql string, args ...interface{}) *AnyValue {
+	defer d.reset()
 	anyValue := d.Query(sql, args...)
 	if err := anyValue.ToError(); err != nil {
 		return Eval(err)
@@ -368,5 +369,19 @@ func (d *Dao) reset() {
 	if d.isTx == true {
 		d.isTx = false
 		d.query.UnsetTx()
+	}
+	d.log()
+}
+
+// Runtime data.
+func (d *Dao) log() {
+	if Config.LogWriter != nil {
+		runTime := d.query.GetDuration()
+		Config.LogWriter(map[string]interface{}{
+			"Sql":      runTime.Sql,
+			"Err":      runTime.Err,
+			"Args":     runTime.Args,
+			"ExecTime": runTime.ExecTime,
+		})
 	}
 }

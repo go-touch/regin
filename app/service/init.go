@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/go-touch/regin/utils"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -14,8 +14,7 @@ func (a *Application) init() {
 	}
 
 	// Application Path ... flag get param yet
-	a.attribute["AppPath"], a.err = os.Getwd()
-	if a.err != nil {
+	if a.attribute["AppPath"], a.err = os.Getwd(); a.err != nil {
 		panic(a.err)
 	}
 
@@ -30,9 +29,12 @@ func (a *Application) init() {
 // Batch Init System Path.
 func (a *Application) BatchInitPath(pathMap map[string]string) {
 	for key, value := range pathMap {
-		a.attribute[key] = utils.File.JoinPath(a.attribute["AppPath"], utils.File.JoinPath(strings.Split(value, ".")...))
+		a.attribute[key] = a.joinPath(a.attribute["AppPath"], a.joinPath(strings.Split(value, ".")...))
+		// 不存在则创建
 		if a.err = a.DirExists(a.attribute[key]); a.err != nil {
-			panic(a.err)
+			if err := os.MkdirAll(a.attribute[key], os.ModePerm); err != nil {
+				panic(a.err)
+			}
 		}
 	}
 }
@@ -49,4 +51,9 @@ func (a *Application) GetAttribute(key string) string {
 		return attribute
 	}
 	return ""
+}
+
+// Join path by file Separator.
+func (a *Application) joinPath(path ...string) string {
+	return strings.Join(path, string(filepath.Separator))
 }

@@ -2,12 +2,23 @@ package query
 
 import (
 	"database/sql"
+	"time"
 )
 
+// Define common struct.
 type Combine struct {
 	BaseQuery
-	db *sql.DB
-	tx *sql.Tx
+	db      *sql.DB
+	tx      *sql.Tx
+	Runtime Runtime
+}
+
+// Runtime data struct.
+type Runtime struct {
+	Sql      string        // sql语句
+	Args     []interface{} // 参数
+	ExecTime string        // 执行时间
+	Err      error         // 运行错误
 }
 
 // Set Db.
@@ -30,28 +41,57 @@ func (c *Combine) GetTx() *sql.Tx {
 	return c.tx
 }
 
+// 获取运行期间数据
+func (c *Combine) GetDuration() Runtime {
+	return c.Runtime
+}
+
 // 查询一条记录
-func (c *Combine) QueryRow(sql string, args ...interface{}) *sql.Row {
+func (c *Combine) QueryRow(sql string, args ...interface{}) (row *sql.Row) {
+	startTime := time.Now()
 	if c.tx != nil {
-		return c.tx.QueryRow(sql, args...)
+		row = c.tx.QueryRow(sql, args...)
+	} else {
+		row = c.db.QueryRow(sql, args...)
 	}
-	return c.db.QueryRow(sql, args...)
+	// Runtime data.
+	c.Runtime.Sql = sql
+	c.Runtime.Args = args
+	c.Runtime.ExecTime = time.Since(startTime).String()
+	c.Runtime.Err = nil
+	return row
 }
 
 // 查询多条记录
-func (c *Combine) QueryAll(sql string, args ...interface{}) (*sql.Rows, error) {
+func (c *Combine) QueryAll(sql string, args ...interface{}) (rows *sql.Rows, err error) {
+	startTime := time.Now()
 	if c.tx != nil {
-		return c.tx.Query(sql, args...)
+		rows, err = c.tx.Query(sql, args...)
+	} else {
+		rows, err = c.db.Query(sql, args...)
 	}
-	return c.db.Query(sql, args...)
+	// Runtime data.
+	c.Runtime.Sql = sql
+	c.Runtime.Args = args
+	c.Runtime.ExecTime = time.Since(startTime).String()
+	c.Runtime.Err = err
+	return rows, err
 }
 
 // 插入[更新][删除]n条记录
-func (c *Combine) Exec(sql string, args ...interface{}) (sql.Result, error) {
+func (c *Combine) Exec(sql string, args ...interface{}) (result sql.Result, err error) {
+	startTime := time.Now()
 	if c.tx != nil {
-		return c.tx.Exec(sql, args...)
+		result, err = c.tx.Exec(sql, args...)
+	} else {
+		result, err = c.db.Exec(sql, args...)
 	}
-	return c.db.Exec(sql, args...)
+	// Runtime data.
+	c.Runtime.Sql = sql
+	c.Runtime.Args = args
+	c.Runtime.ExecTime = time.Since(startTime).String()
+	c.Runtime.Err = err
+	return result, err
 }
 
 // Begin starts a transaction.

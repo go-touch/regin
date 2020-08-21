@@ -48,12 +48,21 @@ func main() {
 	})
 	// 查询
 	dao := db.Model(&AdminUsers2{})
-	ret1 := dao.QueryRow("SELECT count(*) as num from admin_users")
+
+	ret := dao.FetchRow(func(dao *db.Dao) {
+		dao.Where("Account like", "%15116980818%")
+		//dao.Sql()
+	})
+
+	fmt.Println(ret.ToStringMap())
+
+	dao.GetDuration()
+	/*ret1 := dao.QueryRow("SELECT count(*) as num from admin_users")
 	fmt.Printf("ret1的值为:%v\n", ret1)
 
 	a := ret1.ToStringMap()
 	fmt.Printf("值:%v\n", a)
-	fmt.Printf("类型:%T\n", ret1.ToValue())
+	fmt.Printf("类型:%T\n", ret1.ToValue())*/
 
 	/*dao := db.Model(&AdminUsers2{})
 	fmt.Printf("dao的值为:%v\n", dao.GetQuery())

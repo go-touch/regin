@@ -6,8 +6,13 @@ import (
 	"strings"
 )
 
+// 日志回调函数
+type LogWriter func(map[string]interface{})
+
+// 配置存储容器
 type ConfigStorage struct {
-	config interface{}
+	config    interface{}
+	LogWriter LogWriter
 }
 
 var Config *ConfigStorage
@@ -19,6 +24,11 @@ func init() {
 // 初始化数据库配置
 func (cs *ConfigStorage) Init(config map[string]interface{}) {
 	cs.config = config
+}
+
+// 初始化日志方法
+func (cs *ConfigStorage) InitLogWriter(logWriter LogWriter) {
+	cs.LogWriter = logWriter
 }
 
 // 获取配置
