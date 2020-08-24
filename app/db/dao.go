@@ -378,7 +378,7 @@ func (d *Dao) log() {
 	if Config.LogWriter != nil {
 		runTime := d.query.GetDuration()
 		Config.LogWriter(map[string]interface{}{
-			"Sql":      runTime.Sql,
+			"SQL":      runTime.Sql,
 			"Err":      runTime.Err,
 			"Args":     runTime.Args,
 			"ExecTime": runTime.ExecTime,

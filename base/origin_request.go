@@ -14,7 +14,8 @@ import (
 const defaultMultipartMemory = 32 << 20 // 32 MB
 
 type Request struct {
-	*http.Request
+	//*http.Request
+	*gin.Context
 	Storage       *mtype.AnyMap // 运行期间的存储容器
 	paramMap      StringMap
 	getMap        StringMap
@@ -35,7 +36,8 @@ func init() {
 // Create an new Request.
 func (r *Request) Factory(c *gin.Context) *Request {
 	request := &Request{
-		Request:       c.Request,
+		Context:       c,
+		//Request:       c.Request,
 		Storage:       &mtype.AnyMap{},
 		cookieMap:     map[string]string{},
 		paramMap:      map[string]string{},
@@ -70,14 +72,14 @@ func (r *Request) initGet() error {
 // Init POST data.
 func (r *Request) initPost() error {
 	// When Request method is POST then parser data.
-	if r.Method == "POST" {
+	if r.Request.Method == "POST" {
 		// Handle data by Content-Type.
-		ct := r.Header.Get("Content-Type")
+		ct := r.Request.Header.Get("Content-Type")
 		if strings.Contains(ct, "/x-www-form-urlencoded") || strings.Contains(ct, "/form-data") {
-			if r.error = r.ParseMultipartForm(defaultMultipartMemory); r.error != nil && r.error != http.ErrNotMultipart {
+			if r.error = r.Request.ParseMultipartForm(defaultMultipartMemory); r.error != nil && r.error != http.ErrNotMultipart {
 				return r.error
 			}
-			for key, value := range r.PostForm {
+			for key, value := range r.Request.PostForm {
 				if len(value) == 1 {
 					(*r.postMap)[key] = value[0]
 				} else {
@@ -88,7 +90,7 @@ func (r *Request) initPost() error {
 			*r.postMap = r.parserPostMap(*r.postMap)
 			return nil
 		} else { // Handle data by other Content-Type.
-			if r.rawSlice, r.error = ioutil.ReadAll(r.Body); r.error != nil {
+			if r.rawSlice, r.error = ioutil.ReadAll(r.Request.Body); r.error != nil {
 				return r.error
 			}
 			if strings.Contains(ct, "/json") { // Content-Type is Json.
@@ -107,7 +109,7 @@ func (r *Request) initPost() error {
 
 // Get Http request method
 func (r *Request) GetMethod() string {
-	return r.Method
+	return r.Request.Method
 }
 
 // Get error info
@@ -156,8 +158,8 @@ func (r *Request) Post() *mtype.AnyMap {
 
 // POST file.
 func (r *Request) PostFile(name string) []*multipart.FileHeader {
-	if r.MultipartForm != nil && r.MultipartForm.File != nil {
-		if fileHeaders, ok := r.MultipartForm.File[name]; ok {
+	if r.Request.MultipartForm != nil && r.Request.MultipartForm.File != nil {
+		if fileHeaders, ok := r.Request.MultipartForm.File[name]; ok {
 			r.postFileSlice = fileHeaders
 		}
 	}
