@@ -19,8 +19,8 @@ func init() {
 			"ini":  new(config_parser.IniParser).Init(),
 		},
 	}
-}
 
+}
 // 使用解析器解析文件至map类型配置数据
 func (cfp *ConfigFileParser) ParserToMap(parserName string, filePath string) (map[string]interface{}, error) {
 	parser, ok := cfp.Parsers[parserName]

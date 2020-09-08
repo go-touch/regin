@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"github.com/go-touch/regin/app/core"
 	"github.com/go-touch/regin/app/service"
 	"github.com/go-touch/regin/base"
@@ -31,6 +32,10 @@ func NewHttp() *Http {
 
 // Http server work method.
 func (h *Http) Work(request *base.Request) *base.Result {
+
+	fmt.Println(request.ParamAll())
+
+
 	// Get action.
 	paramArray := []string{request.Param("module"), request.Param("controller")}
 	if request.Param("action") != "" {
